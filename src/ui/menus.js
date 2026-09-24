@@ -108,6 +108,9 @@ export class Menus {
     const s = this.screens.map, save = this.app.save;
     s.innerHTML = `<div class="mapwrap"></div><div class="side"><div class="row" style="justify-content:space-between;align-items:center"><h2>Region</h2><button class="btn small" data-a="start">Menu</button></div><div id="mdetail"></div><div id="chapters"></div></div>`;
     const wrap = $('.mapwrap', s); const cv = this.mapCanvas(); wrap.appendChild(cv);
+    const leg = document.createElement('div'); leg.className = 'legend';
+    leg.innerHTML = '<span><b class="lg h">H</b> baza</span><span><b class="lg m">1</b> misja</span><span><b class="lg e">E</b> egzamin</span><span><i class="ln r"></i> przewody (niebezpieczne)</span><span><i class="ln w"></i> droga</span>';
+    wrap.appendChild(leg);
     const place = () => {
       wrap.querySelectorAll('.pin').forEach(p => p.remove());
       const rect = cv.getBoundingClientRect(), wr = wrap.getBoundingClientRect();
@@ -163,7 +166,7 @@ export class Menus {
       <h3>Medale</h3>
       <div class="small" style="line-height:1.7"><span class="medal b" style="display:inline-block;vertical-align:-1px"></span> ukończenie
         <br><span class="medal s" style="display:inline-block;vertical-align:-1px"></span> czas ≤ ${time(th.silver.time)}${th.silver.impact != null ? `, przyziemienie ≤ ${f1(th.silver.impact)} m/s` : ''}${th.silver.dist != null ? `, precyzja ≤ ${f1(th.silver.dist)} m` : ''}
-        <br><span class="medal g" style="display:inline-block;vertical-align:-1px"></span> czas ≤ ${time(th.gold.time)}${th.gold.impact != null ? `, przyziemienie ≤ ${f1(th.gold.impact)} m/s` : ''}${th.gold.dist != null ? `, precyzja ≤ ${f1(th.gold.dist)} m` : ''}, bez uszkodzeń, asysta ≠ Pełna</div>
+        <br><span class="medal g" style="display:inline-block;vertical-align:-1px"></span> czas ≤ ${time(th.gold.time)}${th.gold.impact != null ? `, przyziemienie ≤ ${f1(th.gold.impact)} m/s` : ''}${th.gold.dist != null ? `, precyzja ≤ ${f1(th.gold.dist)} m` : ''}, bez uszkodzeń, asysta Częściowa lub Brak</div>
       ${r ? `<div class="muted small" style="margin-top:8px">Najlepszy: ${r.medal ? MEDAL_NAME[r.medal] : '—'}${r.best ? ', ' + time(r.best) : ''} · prób: ${r.attempts}</div>` : ''}
       <h3>Asysta</h3>
       <div class="seg" id="assistSeg">${[['full', 'Pełna'], ['partial', 'Częściowa'], ['none', 'Brak']].map(([k, l]) => `<button data-k="${k}" class="${assist === k ? 'on' : ''}">${l}</button>`).join('')}</div>

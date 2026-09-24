@@ -29,7 +29,7 @@ export function buildObjects(terrain) {
   pad('roof', office.x, office.z, 11, by + 8.5, { roofPad: true });
   box('fuel', BASE.x + 62, BASE.z + 2, 6, 3, 4, 0, { y0: by, tag: 'dystrybutor' });
   box('tank', BASE.x + 70, BASE.z - 6, 10, 3.2, 3.2, 0, { y0: by, tag: 'zbiornik paliwa', shape: 'tank' });
-  O.special.push({ kind: 'windsock', x: BASE.x + 55, z: BASE.z - 12, y: by, h: 6 });
+  O.special.push({ kind: 'windsock', x: BASE.x - 45, z: BASE.z + 55, y: by, h: 6 });
   O.special.push({ kind: 'apron', x: BASE.x, z: BASE.z + 12, y: by, w: 110, d: 56 });
   O.special.push({ kind: 'marker', id: 'train1', x: BASE.x, z: BASE.z - 45 + 110, y: H(BASE.x, BASE.z + 65) });
 

@@ -32,7 +32,7 @@ export function installDebug(app) {
         else { api.freeCam([m.x, m.y + 380, m.z + 160], [m.x, m.y, m.z]); return; }
       }
       app.freeCam = null;
-      app.view.pos.copy(h.pos); app.view.quat.copy(h.quat); app.prev.pos.copy(h.pos); app.prev.quat.copy(h.quat); app.camPos.set(1e9, 0, 0);
+      app.view.pos.copy(h.pos); app.view.quat.copy(h.quat); app.prev.pos.copy(h.pos); app.prev.quat.copy(h.quat); app.camPos.set(1e9, 0, 0); app.hud._acc = 1;
       for (let i = 0; i < (api.frames || 3); i++) app.render(1 / 60);
     },
     freeCam(pos, look) {
@@ -42,6 +42,7 @@ export function installDebug(app) {
     },
     // kroki symulacji z prawdziwym obiektem Input (klawiatura/pad), bez renderu
     stepInput(seconds) { const s = app.session; for (let i = 0; i < seconds / DT && s.mission.status === 'running'; i++) { const raw = app.input.poll(DT); app.lastRaw = raw; s.step(raw); } app.prev.pos.copy(s.heli.pos); app.prev.quat.copy(s.heli.quat); app.view.pos.copy(s.heli.pos); app.view.quat.copy(s.heli.quat); const h = s.heli; return { agl: h.tel.agl, vs: h.vel.y, gs: h.tel.gs, crashed: h.crashed, onGround: h.onGround, col: app.input.collective, maxImpact: h.stats.maxImpact, hard: h.stats.hardLandings, roll: h.attitude().roll * 57.3, pitch: h.attitude().pitch * 57.3, idx: s.mission.idx, status: s.mission.status }; },
+    pumpRadio() { const R = app.session.mission.radio; while (app.radioSeen < R.length) app.hud.radio(R[app.radioSeen++]); },
     renderOnce() { const t = performance.now(); if (app.session) app.render(1 / 60); else app.renderIdle(1 / 60); return performance.now() - t; },
     stopLoop(v = true) { app.loopStopped = v; },
     fly(seconds, raw) { const s = app.session; for (let i = 0; i < seconds / DT; i++) s.step({ collective: 0, cx: 0, cy: 0, pedal: 0, ...raw }); app.prev.pos.copy(s.heli.pos); app.prev.quat.copy(s.heli.quat); app.view.pos.copy(s.heli.pos); app.view.quat.copy(s.heli.quat); },
@@ -50,7 +51,7 @@ export function installDebug(app) {
       if (id) app.startMission(id); app.input.unlock();
       const s = app.session, ap = new Autopilot(s);
       const n = seconds / DT;
-      for (let i = 0; i < n && s.mission.status === 'running'; i++) { s.step(ap.step()); if (until && until(s)) break; }
+      for (let i = 0; i < n && s.mission.status === 'running'; i++) { const raw = ap.step(); app.lastRaw = { ...raw }; s.step(raw); if (until && until(s)) break; }
       app.prev.pos.copy(s.heli.pos); app.prev.quat.copy(s.heli.quat);
       return { status: s.mission.status, t: s.t, reason: s.mission.failReason, result: s.mission.status !== 'running' ? s.mission.result() : null };
     },

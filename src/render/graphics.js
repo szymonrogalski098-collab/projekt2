@@ -270,6 +270,7 @@ export class Graphics {
     for (const mk of this.markers.children) for (const c of mk.children) if (c.userData.farOnly) c.visible = cam.position.distanceTo(mk.position) > 250;
     if (v.dust) this.updateDust(dt, v.heli, v.dust.groundY, v.dust.water, v.dust.strength);
     else this.updateDust(dt, v.heli, 0, false, 0);
+    this.renderer.info.autoReset = false; this.renderer.info.reset();
     this.composer.render(dt);
   }
 }

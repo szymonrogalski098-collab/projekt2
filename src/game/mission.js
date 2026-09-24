@@ -47,7 +47,7 @@ export class MissionRun {
     if (this.session.sling?.load?.broken) return this.fail('Ładunek uszkodzony');
     const o = this.current;
     if (o && o.update(this, dt)) {
-      this.idx++;
+      this.idx++; this.flash = { text: 'Zaliczone', t: this.time };
       const n = this.current;
       if (n) { n.init(this); if (n.def.radio) this.say(n.def.radio, 'instr'); }
       else { this.status = 'success'; if (d.radio?.success) this.say(d.radio.success, 'instr'); }

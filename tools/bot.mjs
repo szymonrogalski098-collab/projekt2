@@ -44,7 +44,8 @@ let allOk = true;
 for (const def of list) {
   const res = [];
   const tm = Date.now();
-  for (let i = 0; i < runs; i++) res.push(runMission(def, i + 1, { naive, trace: trace && i === 0 }));
+  const seed0 = +(opt('seed') || 1);
+  for (let i = 0; i < runs; i++) res.push(runMission(def, seed0 + i, { naive, trace: trace && i === 0, every: +(opt('every') || 5) }));
   const ok = res.filter(r => r.success);
   const times = ok.map(r => r.time).sort((a, b) => a - b);
   const med = times.length ? times[Math.floor(times.length / 2)] : NaN;
@@ -53,6 +54,7 @@ for (const def of list) {
   const imp = ok.map(r => r.maxImpact); const dist = ok.map(r => r.maxDist);
   console.log(`${def.id.padEnd(6)} ${naive ? 'NAIWNY ' : ''}ok ${ok.length}/${runs}  czas med ${med.toFixed(1)} s (min ${times[0]?.toFixed(1)}, max ${times[times.length - 1]?.toFixed(1)})  medale b/s/z ${medals[1]}/${medals[2]}/${medals[3]}  przyz. max ${Math.max(0, ...imp).toFixed(2)}  prec. max ${Math.max(0, ...dist).toFixed(2)}  [${((Date.now() - tm) / 1000).toFixed(1)} s]`);
   if (Object.keys(fails).length) console.log('   porażki:', fails);
+  const w = ok.find(r => r.medal < 3); if (w) console.log('   brak medalu wyżej:', w.why.join('; '));
   if (ok.length < runs) allOk = false;
   if (calibrate && ok.length) refs[def.id] = Math.round(med * 10) / 10;
   if (naive && def.chapter >= 2 && medals[2] + medals[3] > 0) { console.log('   !!! naiwny kontroler zdobył srebro – misja za łatwa'); allOk = false; }

@@ -53,7 +53,7 @@ export class Sling {
     const h = this.hookPos, top = [load.pos[0], load.pos[1] + load.half, load.pos[2]];
     return Math.hypot(h[0] - top[0], h[1] - top[1], h[2] - top[2]) < 1.6;
   }
-  attach(load) { this.load = load; load.prev = [...load.pos]; load.airborne = false; }
+  attach(load) { this.load = load; load.prev = [...load.pos]; load.airborne = false; load.impactMax = 0; }
   release() { const l = this.load; this.load = null; return l; }
 
   // Krok: hookA/hookB – pozycja zaczepu na śmigłowcu na początku/końcu kroku

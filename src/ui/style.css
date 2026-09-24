@@ -31,7 +31,7 @@ button { font: inherit; color: inherit; }
 #warn .a { color: var(--amber); }
 #warn.blink { animation: blink 0.5s steps(2) infinite; }
 @keyframes blink { 50% { opacity: 0.25; } }
-#radio { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); width: min(760px, 60vw); text-align: center; }
+#radio { position: absolute; top: 86px; left: 50%; transform: translateX(-50%); width: min(760px, 60vw); text-align: center; }
 #radio .m { display: inline-block; margin-top: 6px; padding: 7px 14px; border-radius: 6px; background: rgba(8, 12, 16, 0.72); border: 1px solid var(--line); font-size: 15px; line-height: 1.4; color: #f3f6f7; transition: opacity 0.6s; }
 #radio .m.instr { border-left: 3px solid var(--accent2); }
 #radio .m.hint { border-left: 3px solid var(--accent); }
@@ -125,3 +125,14 @@ textarea { width: 100%; min-height: 90px; background: #0c1116; color: var(--text
 .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--panel-solid); border: 1px solid var(--line); padding: 10px 16px; border-radius: 8px; z-index: 50; }
 
 .set [data-v] { display: inline-block; min-width: 44px; text-align: right; }
+
+#wind .lbl, #vsbar .lbl { font-size: 10px; letter-spacing: 0.08em; color: var(--hud-dim); margin-top: 2px; }
+#vsbar .lbl { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 4px; }
+#flash { position: absolute; top: 58px; left: 50%; transform: translateX(-50%); font-size: 15px; font-weight: 700; color: var(--green); letter-spacing: 0.08em; }
+#tgt .l { font-size: 14px; font-weight: 600; text-shadow: 0 1px 3px #000, 0 0 2px #000; }
+#camlabel { font-size: 13px; color: var(--hud); }
+
+.legend { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); display: flex; gap: 14px; background: rgba(8,12,16,0.8); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 12px; color: var(--text); white-space: nowrap; }
+.legend .lg { display: inline-flex; width: 16px; height: 16px; border-radius: 50%; align-items: center; justify-content: center; font-size: 10px; color: #06131b; margin-right: 4px; border: 1px solid #fff; }
+.legend .lg.h { background: #fff; border-radius: 3px; } .legend .lg.m { background: var(--accent2); } .legend .lg.e { background: var(--accent); border-radius: 3px; }
+.legend .ln { display: inline-block; width: 18px; height: 2px; vertical-align: middle; margin-right: 4px; } .legend .ln.r { background: #ff5a3c; } .legend .ln.w { background: rgba(250,240,220,0.8); }

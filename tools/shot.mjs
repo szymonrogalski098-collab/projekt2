@@ -61,6 +61,15 @@ if (scenario === 'menu') {
   await G(() => { window.__game.setLevel('c1m1'); window.__game.capture('gracz'); window.__game.app.pause(); }); await p.waitForTimeout(300); await shot('ui-pause');
   await G(() => window.__game.app.ui('settings')); await p.waitForTimeout(300); await shot('ui-settings');
   await G(() => window.__game.app.ui('controls')); await p.waitForTimeout(300); await shot('ui-controls');
+} else if (scenario === 'onb') {
+  // zrzuty onboardingu dla testu „świeżego oka”
+  await G(() => window.__game.renderOnce()); await shot('onb-1-start');
+  await G(() => { window.__game.app.ui('map'); window.__game.app.menus.selectMission('c1m1'); }); await p.waitForTimeout(400); await shot('onb-2-mapa');
+  await G(() => window.__game.app.ui('controls')); await p.waitForTimeout(300); await shot('onb-3-sterowanie');
+  await G(() => { window.__game.setLevel('c1m1'); window.__game.pumpRadio(); window.__game.capture('gracz'); }); await shot('onb-4-start-lotu');
+  await G(() => { const g = window.__game; g.runBot(null, { until: s => s.mission.idx >= 1 }); g.pumpRadio(); g.capture('gracz'); }); await shot('onb-5-po-starcie');
+  await G(() => { const g = window.__game; g.runBot(null, { until: s => s.mission.idx >= 2 }); g.pumpRadio(); g.capture('gracz'); }); await shot('onb-6-przelot');
+  await G(() => { const g = window.__game; g.runBot(null, { until: s => s.mission.idx >= 4 }); g.pumpRadio(); g.capture('gracz'); }); await shot('onb-7-ladowanie');
 } else if (scenario === 'perf') {
   await G(() => window.__game.setLevel('c1m2'));
   await G(() => window.__game.teleport(0, null, 1500, 0, 30));

@@ -72,7 +72,7 @@ export class TerrainMesh {
     this.material = mat;
     this.mesh = new THREE.Mesh(this.geo, mat);
     this.mesh.frustumCulled = false;
-    this.mesh.receiveShadow = true; this.mesh.castShadow = true;
+    this.mesh.receiveShadow = true; this.mesh.castShadow = false; // wielkoskalowe cienie terenu: tekstura widoczności słońca
     // materiał głębi dla cieni (ta sama deformacja wierzchołków)
     const depth = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking });
     depth.onBeforeCompile = sh => {

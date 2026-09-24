@@ -8,10 +8,10 @@ export class Hud {
       <div id="camlabel"></div>
       <div id="obj"><div class="t"></div><div class="s"></div><div class="bar"><i></i></div></div>
       <div id="timer" class="num"></div>
-      <div id="wind"><div class="ar"><i></i></div><b></b></div>
+      <div id="wind"><div class="ar"><i></i></div><b></b><div class="lbl">WIATR</div></div>
       <div id="inst"></div>
       <div id="warn"></div>
-      <div id="vsbar"><div class="z"></div><i></i><b></b></div>
+      <div id="vsbar"><div class="z"></div><i></i><b></b><div class="lbl">PIONOWA</div></div><div id="flash"></div>
       <div id="tgt"><div class="d"></div><div class="l num"></div></div>
       <div id="hookinfo"></div>
       <div id="stickbox"><div><div class="pad"><i></i></div><div class="ped"><i></i></div><div class="lbl">DRĄŻEK · PEDAŁY</div></div><div><div class="col"><i></i></div><div class="lbl">SKOK</div></div></div>
@@ -19,7 +19,7 @@ export class Hud {
     this.root = root;
     const q = s => root.querySelector(s);
     this.el = { obj: q('#obj'), objT: q('#obj .t'), objS: q('#obj .s'), objBar: q('#obj .bar i'), timer: q('#timer'), inst: q('#inst'), warn: q('#warn'), vs: q('#vsbar'), vsI: q('#vsbar i'), vsB: q('#vsbar b'),
-      tgt: q('#tgt'), tgtL: q('#tgt .l'), hook: q('#hookinfo'), stick: q('#stickbox .pad i'), col: q('#stickbox .col i'), ped: q('#stickbox .ped i'), wind: q('#wind'), windI: q('#wind i'), windB: q('#wind b'), radio: q('#radio'), cam: q('#camlabel') };
+      tgt: q('#tgt'), flash: q('#flash'), tgtL: q('#tgt .l'), hook: q('#hookinfo'), stick: q('#stickbox .pad i'), col: q('#stickbox .col i'), ped: q('#stickbox .ped i'), wind: q('#wind'), windI: q('#wind i'), windB: q('#wind b'), radio: q('#radio'), cam: q('#camlabel') };
     this.el.inst.innerHTML = ['spd', 'alt', 'agl', 'vs', 'rpm', 'pwr', 'fuel', 'hdg'].map(k => `<div class="r" data-k="${k}"><span></span><b></b></div>${k === 'rpm' || k === 'pwr' ? `<div class="g" data-g="${k}"><i></i><u></u></div>` : ''}`).join('');
     this.rows = {}; for (const r of this.el.inst.querySelectorAll('.r')) this.rows[r.dataset.k] = { r, l: r.querySelector('span'), v: r.querySelector('b') };
     this.gauges = {}; for (const g of this.el.inst.querySelectorAll('.g')) this.gauges[g.dataset.g] = { i: g.querySelector('i'), u: g.querySelector('u') };
@@ -34,7 +34,7 @@ export class Hud {
     const who = { instr: 'instruktor', hint: 'podpowiedź', sys: 'uwaga', baza: 'radio' }[msg.who] || 'radio';
     const [name, rest] = /^(\S+): (.*)$/.test(msg.text) ? msg.text.split(/: (.*)/s) : [null, msg.text];
     this.msgs.push({ html: `<div class="m ${msg.who}"><span class="who">${name || who}</span>${rest}</div>`, t: this.t, dur: 7 + rest.length * 0.045 });
-    if (this.msgs.length > 3) this.msgs.shift();
+    if (this.msgs.length > 2) this.msgs.shift();
     this.renderRadio();
     if (audio) audio.radio();
   }
@@ -122,7 +122,9 @@ export class Hud {
       const L = v.sling.load;
       this.el.hook.innerHTML = L ? `Ładunek: <b>${L.name}</b> ${L.mass} kg · nad ziemią <b>${fmt(Math.max(0, v.loadAgl), 1)} m</b>` : `Hak nad celem: <b>${fmt(v.hookDist ?? 0, 1)} m</b> · wys. <b>${fmt(v.hookAgl ?? 0, 1)} m</b>`;
     } else this.el.hook.style.display = 'none';
-    this.el.cam.textContent = v.camLabel || '';
+    if (v.camLabel !== this._camL) { this._camL = v.camLabel; this._camT = this.t; }
+    this.el.cam.textContent = this.t - (this._camT || 0) < 3 ? (v.camLabel || '') : '';
+    const fl = v.flash; this.el.flash.textContent = fl && v.time - fl.t < 1.6 ? fl.text : '';
     this.updateTarget(v);
   }
   updateTarget(v) {

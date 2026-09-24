@@ -27,7 +27,7 @@ export function hoverCeiling(h, extra = 0) {
 export class Autopilot {
   constructor(session, opts = {}) {
     this.s = session; this.naive = !!opts.naive;
-    this.lever = 0; this.colI = 0.45; this.ivx = 0; this.ivz = 0;
+    this.lever = session.controls?.collective || 0; this.colI = Math.max(0.45, this.lever); this.ivx = 0; this.ivz = 0;
     this.rate = opts.leverRate ?? 0.8;
     this.phase = ''; this.wait = 0; this.lastObj = -1; this.hdgDes = null;
     this.raw = { collective: 0, collectiveAxis: 0, cx: 0, cy: 0, pedal: 0, action: false };
@@ -57,7 +57,7 @@ export class Autopilot {
     const dx0 = tg.x - pos.x, dz0 = tg.z - pos.z, dist0 = Math.hypot(dx0, dz0);
 
     if (tg.mode === 'hover') { ty = tg.y - skid; if (dist0 < 30) faceTarget = false; }
-    if (tg.mode === 'turn') { tx = pos.x; tz = pos.z; ty = pos.y; faceTarget = false; wantHeading = Math.atan2(tg.face.x - pos.x, -(tg.face.z - pos.z)); }
+    if (tg.mode === 'turn') { tx = pos.x; tz = pos.z; ty = Math.max(pos.y, s.ctx.world.ground(pos.x, pos.z, pos.y).h - skid + 4); faceTarget = false; wantHeading = Math.atan2(tg.face.x - pos.x, -(tg.face.z - pos.z)); }
     if (tg.mode === 'fly') { pass = true; }
     if (tg.mode === 'gate') {
       const nx = Math.sin(tg.dir), nz = -Math.cos(tg.dir);
@@ -132,10 +132,10 @@ export class Autopilot {
         faceTarget = false;
         tx = pos.x + ex; tz = pos.z + ez;
         const lv = Math.hypot(load.vel[0], load.vel[2]);
-        if (this.phase === '' && le < 2.0 && lv < 1.0 && Math.hypot(vel.x, vel.z) < 1.0) this.phase = 'lower';
+        if (this.phase === '' && le < 1.6 && lv < 0.7 && Math.hypot(vel.x, vel.z) < 0.8) this.phase = 'lower';
         if (this.phase === 'lower' && le > 3) this.phase = '';
         if (this.phase === 'lower') {
-          ty = pos.y - (loadAgl + 0.3) - 1.5; vsDownMax = loadAgl > 4 ? 1.2 : 0.45;
+          ty = pos.y - (loadAgl + 0.3) - 1.5; vsDownMax = loadAgl > 6 ? 1.0 : loadAgl > 2 ? 0.5 : 0.25;
           if (load.onGround && sl.tension < load.mass * G * 0.35) { this.wait += dt; if (this.wait > 0.4) raw.action = true; }
           else this.wait = 0;
         } else ty = pos.y - loadAgl + Math.max(3, Math.min(20, le * 0.3 + 3));
@@ -257,8 +257,8 @@ export class Autopilot {
       target = 0; this.colI = Math.max(0.3, this.colI - dt * 0.4);
     } else {
       // z ładunkiem na linie: filtrowana prędkość pionowa i mniejsze wzmocnienie (bez pobudzania „bungee”)
-      this.vsF = this.vsF === undefined ? vel.y : this.vsF + (vel.y - this.vsF) * Math.min(1, dt / (sl ? 0.6 : 0.05));
-      const kP = sl ? 0.045 : 0.09, kI = sl ? 0.07 : 0.12;
+      this.vsF = this.vsF === undefined ? vel.y : this.vsF + (vel.y - this.vsF) * Math.min(1, dt / (sl ? 0.25 : 0.05));
+      const kP = sl ? 0.06 : 0.09, kI = sl ? 0.1 : 0.12;
       this.colI = clamp(this.colI + (vsCmd - this.vsF) * kI * dt, 0.15, 0.95);
       target = clamp(this.colI + (vsCmd - this.vsF) * kP, 0, 1);
       if (h.onGround && vsCmd > 0) { target = Math.max(target, this.lever + 0.004); this.colI = Math.max(this.colI, this.lever); }

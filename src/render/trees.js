@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { enhance } from './atmo.js';
 import { Rng } from '../core/rng.js';
 
-const NEAR_R = 420, FAR_R = 5200, NEAR_MAX = 9000, FAR_MAX = 160000;
+const NEAR_R = 420, SHADOW_R = 170, FAR_R = 5200, NEAR_MAX = 9000, FAR_MAX = 160000;
 
 function spruceGeo(rng) {
   const parts = [];
@@ -31,7 +31,7 @@ function larchGeo(rng) {
   const parts = [];
   const trunk = new THREE.CylinderGeometry(0.02, 0.035, 0.5, 5, 1); trunk.translate(0, 0.25, 0); paint(trunk, [0.1, 0.08, 0.06]); parts.push(trunk);
   for (let i = 0; i < 4; i++) {
-    const s = new THREE.IcosahedronGeometry(0.2 - i * 0.03, 1);
+    const s = new THREE.IcosahedronGeometry(0.2 - i * 0.03, 0);
     const p = s.attributes.position;
     for (let k = 0; k < p.count; k++) p.setXYZ(k, p.getX(k) * (0.9 + rng.float(0, 0.25)), p.getY(k) * 1.2, p.getZ(k) * (0.9 + rng.float(0, 0.25)));
     s.translate(rng.float(-0.04, 0.04), 0.35 + i * 0.17, rng.float(-0.04, 0.04));
@@ -95,9 +95,10 @@ export class Forest {
       return m;
     };
     this.geos = [spruceGeo(rng), larchGeo(rng)];
-    this.near = this.geos.map(g => {
-      const im = new THREE.InstancedMesh(g, mkMat(), NEAR_MAX);
-      im.count = 0; im.castShadow = true; im.receiveShadow = true; im.frustumCulled = false;
+    // 0..1: bliskie z cieniem (≤ SHADOW_R), 2..3: średnie bez cienia
+    this.near = [0, 1, 0, 1].map((k, i) => {
+      const im = new THREE.InstancedMesh(this.geos[k], mkMat(), NEAR_MAX);
+      im.count = 0; im.castShadow = i < 2; im.receiveShadow = true; im.frustumCulled = false;
       this.group.add(im); return im;
     });
     this.atlas = this.makeAtlas(renderer);
@@ -170,7 +171,7 @@ export class Forest {
     const T = this.trees;
     if (camPos.distanceToSquared(this._lastNear) > 30 * 30) {
       this._lastNear.copy(camPos);
-      const cnt = [0, 0];
+      const cnt = [0, 0, 0, 0];
       const g = T.grid, r = NEAR_R;
       const i0 = Math.max(0, Math.floor((camPos.x - r + g.half) / g.B)), i1 = Math.min(g.nb - 1, Math.floor((camPos.x + r + g.half) / g.B));
       const j0 = Math.max(0, Math.floor((camPos.z - r + g.half) / g.B)), j1 = Math.min(g.nb - 1, Math.floor((camPos.z + r + g.half) / g.B));
@@ -180,11 +181,12 @@ export class Forest {
           const k = g.idx[q];
           const dx = T.x[k] - camPos.x, dz = T.z[k] - camPos.z;
           if (dx * dx + dz * dz > r * r) continue;
-          const kind = T.kind[k], im = this.near[kind];
+          const kind = T.kind[k] + (dx * dx + dz * dz > SHADOW_R * SHADOW_R ? 2 : 0), im = this.near[kind];
           if (cnt[kind] >= NEAR_MAX) continue;
           const h = T.h[k];
           this._q.setFromAxisAngle(this._p.set(0, 1, 0), (k * 2.399) % 6.283);
-          this._m.compose(this._p.set(T.x[k], T.y[k] - 0.3, T.z[k]), this._q, this._s.set(h * (kind ? 1.1 : 1), h, h * (kind ? 1.1 : 1)));
+          const lk = T.kind[k];
+          this._m.compose(this._p.set(T.x[k], T.y[k] - 0.3, T.z[k]), this._q, this._s.set(h * (lk ? 1.1 : 1), h, h * (lk ? 1.1 : 1)));
           im.setMatrixAt(cnt[kind]++, this._m);
         }
       }

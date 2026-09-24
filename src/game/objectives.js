@@ -131,10 +131,12 @@ class Hook extends Obj {
 
 // Dostarczenie ładunku: odczepiony, leży w strefie
 class Deliver extends Obj {
-  init(run) { this.load = run.session.loads.find(l => l.id === this.def.load); this.p = resolvePoint(run, this.def.at); }
+  init(run) { this.load = run.session.loads.find(l => l.id === this.def.load); this.p = resolvePoint(run, this.def.at); this.maxImp = 0; this.lastSeen = this.load.lastImpact; }
   update(run, dt) {
     const l = this.load, s = run.session;
     const dist = Math.hypot(l.pos[0] - this.p.x, l.pos[2] - this.p.z);
+    // uderzenia ładunku liczą się tylko przy odstawianiu w strefie docelowej
+    if (l.lastImpact !== this.lastSeen) { this.lastSeen = l.lastImpact; if (dist < (this.def.r || 6) + 10) this.maxImp = Math.max(this.maxImp, l.lastImpact); }
     this.status = { dist, attached: s.sling && s.sling.load === l };
     if (s.sling && s.sling.load === l) return false;
     if (!l.onGround) return false;
@@ -143,7 +145,7 @@ class Deliver extends Obj {
       return false;
     }
     if (l.broken) { run.fail('Ładunek uszkodzony przy odstawieniu'); return false; }
-    run.recordDelivery({ dist, impact: l.impactMax, name: l.name });
+    run.recordDelivery({ dist, impact: this.maxImp, name: l.name });
     return true;
   }
   marker() { return { kind: 'drop', x: this.p.x, y: this.p.y, z: this.p.z, r: this.def.r || 6 }; }
