@@ -152,5 +152,51 @@ class Deliver extends Obj {
   botTarget() { return { mode: 'deliver', x: this.p.x, z: this.p.z, y: this.p.y, r: this.def.r || 6, load: this.load }; }
 }
 
-export const OBJECTIVES = { hover: Hover, heading: Heading, takeoff: Takeoff, waypoint: Waypoint, gate: Gate, land: Land, hook: Hook, deliver: Deliver };
+// Akcja ratunkowa z wciągarką: opuść ratownika do poszkodowanego, podejmij (Spacja), wciągnij na pokład
+class Rescue extends Obj {
+  init(run) { this.cas = run.session.loads.find(l => l.id === this.def.casualty); }
+  update(run) {
+    const s = run.session, r = s.rescuer, c = this.cas;
+    const d = Math.hypot(c.pos[0] - r.pos[0], c.pos[1] - r.pos[1], c.pos[2] - r.pos[2]);
+    const hd = Math.hypot(c.pos[0] - run.heli.pos.x, c.pos[2] - run.heli.pos.z);
+    if (!c.carried) {
+      this.text = d < 2.2 ? 'Spacja – ratownik zabezpiecza poszkodowanego' : hd < 25 ? 'Opuść ratownika wciągarką (E) do poszkodowanego' : (this.def.text || 'Leć do poszkodowanego');
+      this.status = { dist: hd };
+      return false;
+    }
+    this.text = 'Wciągnij ratownika z poszkodowanym (Q)';
+    this.status = { dist: s.sling.length };
+    if (s.sling.length <= 1.05) { run.say('Ratownik: Jesteśmy na pokładzie.', 'baza'); return true; }
+    return false;
+  }
+  marker() { const c = this.cas; return { kind: 'load', x: c.pos[0], y: c.pos[1] + 0.5, z: c.pos[2], r: 2.2 }; }
+  botTarget() { const c = this.cas; return { mode: 'rescue', x: c.pos[0], z: c.pos[2], y: c.pos[1] - c.half, cas: c }; }
+}
+
+// Umieszczenie ładunku w oknie (np. segment masztu): pozycja ±tol, wysokość, bezruch przez hold s, potem odczep
+class Place extends Obj {
+  init(run) { this.load = run.session.loads.find(l => l.id === this.def.load); this.p = resolvePoint(run, this.def.at); this.maxImp = 0; this.lastSeen = this.load.lastImpact; }
+  update(run, dt) {
+    const l = this.load, s = run.session, tol = this.def.tol || 0.5;
+    const dist = Math.hypot(l.pos[0] - this.p.x, l.pos[2] - this.p.z);
+    if (l.lastImpact !== this.lastSeen) { this.lastSeen = l.lastImpact; if (dist < tol + 5) this.maxImp = Math.max(this.maxImp, l.lastImpact); }
+    const seated = l.onGround && Math.abs(l.pos[1] - l.half - this.p.y) < 0.4;
+    const yawErr = this.def.yaw != null ? Math.abs(((l.yaw - this.def.yaw) % Math.PI + Math.PI * 1.5) % Math.PI - Math.PI / 2) : 0;
+    const ok = dist <= tol && seated && yawErr < (this.def.yawTol || 0.25) && Math.hypot(...l.vel) < 0.3;
+    this.hold = ok ? this.hold + dt : 0;
+    this.status = { dist, hold: this.hold, need: this.def.hold || 3 };
+    this.text = ok ? 'Trzymaj – montaż…' : (this.def.text || 'Ustaw ładunek w oknie');
+    if (this.hold >= (this.def.hold || 3)) {
+      if (s.sling.load === l) s.sling.release();
+      run.recordDelivery({ dist, impact: this.maxImp, name: l.name });
+      return true;
+    }
+    if (!s.sling.load && l.onGround && !ok && !this._warned) { this._warned = true; run.fail(`Ładunek odczepiony poza oknem montażu (${dist.toFixed(1)} m)`); }
+    return false;
+  }
+  marker() { return { kind: 'drop', x: this.p.x, y: this.p.y, z: this.p.z, r: this.def.tol || 0.5 }; }
+  botTarget() { return { mode: 'deliver', x: this.p.x, z: this.p.z, y: this.p.y, r: this.def.tol || 0.5, load: this.load, place: true }; }
+}
+
+export const OBJECTIVES = { hover: Hover, heading: Heading, takeoff: Takeoff, waypoint: Waypoint, gate: Gate, land: Land, hook: Hook, deliver: Deliver, rescue: Rescue, place: Place };
 export function makeObjective(def) { const C = OBJECTIVES[def.type]; if (!C) throw new Error('Nieznany cel ' + def.type); return new C(def); }

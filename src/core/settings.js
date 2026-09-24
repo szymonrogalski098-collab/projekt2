@@ -2,12 +2,12 @@
 const KEY = 'przelecz.settings.v1';
 export const DEFAULT_KEYS = {
   collUp: 'KeyW', collDown: 'KeyS', pedLeft: 'KeyA', pedRight: 'KeyD', precise: 'ShiftLeft', action: 'Space',
-  camera: 'KeyC', restart: 'KeyR', center: 'KeyX', hud: 'KeyH', pause: 'Escape',
+  camera: 'KeyC', restart: 'KeyR', winchDown: 'KeyE', winchUp: 'KeyQ', center: 'KeyX', hud: 'KeyH', pause: 'Escape',
   cyclicFwd: 'ArrowUp', cyclicBack: 'ArrowDown', cyclicLeft: 'ArrowLeft', cyclicRight: 'ArrowRight',
 };
 export const KEY_LABELS = {
   collUp: 'Skok w górę', collDown: 'Skok w dół', pedLeft: 'Pedał lewy', pedRight: 'Pedał prawy', precise: 'Tryb precyzyjny', action: 'Hak / akcja',
-  camera: 'Kamera', restart: 'Restart misji', center: 'Centrowanie drążka', hud: 'HUD wł./wył.', pause: 'Pauza',
+  camera: 'Kamera', restart: 'Restart misji', winchDown: 'Wciągarka: opuść', winchUp: 'Wciągarka: wciągnij', center: 'Centrowanie drążka', hud: 'HUD wł./wył.', pause: 'Pauza',
   cyclicFwd: 'Drążek do przodu (klaw.)', cyclicBack: 'Drążek do tyłu (klaw.)', cyclicLeft: 'Drążek w lewo (klaw.)', cyclicRight: 'Drążek w prawo (klaw.)',
 };
 export const DEFAULTS = {

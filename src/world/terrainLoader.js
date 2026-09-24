@@ -28,7 +28,7 @@ async function cachePut(d) {
   } catch { /* brak cache – trudno */ }
 }
 
-export function applyLayoutY(y) { L.BASE.y = y.BASE; L.MEADOW.y = y.MEADOW; L.HUT.y = y.HUT; L.MAST.y = y.MAST; L.SLOPE_SITE.y = y.SLOPE_SITE; L.CABLE.a.y = y.A; L.CABLE.b.y = y.B; }
+export function applyLayoutY(y) { L.BASE.y = y.BASE; L.MEADOW.y = y.MEADOW; L.HUT.y = y.HUT; L.MAST.y = y.MAST; L.SLOPE_SITE.y = y.SLOPE_SITE; L.CABLE.a.y = y.A; L.CABLE.b.y = y.B; L.RIDGE_SITE.y = y.RIDGE; L.SUMMIT.y = y.SUMMIT; L.NORTH_MEADOW.y = y.NORTH; L.SERACS.y = y.SERACS; }
 
 export async function loadTerrain(onStatus = () => {}) {
   let d = await cacheGet();

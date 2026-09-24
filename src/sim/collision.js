@@ -52,6 +52,22 @@ export class CollisionWorld {
     }
     out.h = h; return out;
   }
+  // Wypchnięcie punktu (promień r) poza prostopadłościany (bez dachów – tylko ściany boczne). Zwraca [x,y,z,tag] lub null.
+  pushOut(x, y, z, r) {
+    const list = this.near(x, z); if (!list) return null;
+    for (const b of list) {
+      if (b.type !== 'box' || !b.wall) continue;
+      if (y < b.y - b.hy || y > b.y + b.hy - 0.3) continue;
+      const dx = x - b.x, dz = z - b.z;
+      const lx = dx * b.c + dz * b.s, lz = -dx * b.s + dz * b.c;
+      const ex = b.hx + r - Math.abs(lx), ez = b.hz + r - Math.abs(lz);
+      if (ex <= 0 || ez <= 0) continue;
+      let nlx = lx, nlz = lz;
+      if (ex < ez) nlx = Math.sign(lx || 1) * (b.hx + r); else nlz = Math.sign(lz || 1) * (b.hz + r);
+      return [b.x + nlx * b.c - nlz * b.s, y, b.z + nlx * b.s + nlz * b.c, b.tag];
+    }
+    return null;
+  }
   // Najwyższy punkt przeszkód (budynki, słupy, przewody, drzewa) w promieniu r – dla autopilota
   obstacleTop(x, z, r = 30) {
     let top = this.terrain.height(x, z);

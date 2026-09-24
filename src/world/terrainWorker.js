@@ -19,7 +19,7 @@ export function buildPayload() {
       nrm[k * 4] = (nx * 0.5 + 0.5) * 255; nrm[k * 4 + 1] = (ny * 0.5 + 0.5) * 255; nrm[k * 4 + 2] = (nz * 0.5 + 0.5) * 255; nrm[k * 4 + 3] = cav * 255;
     }
   }
-  const layoutY = { BASE: L.BASE.y, MEADOW: L.MEADOW.y, HUT: L.HUT.y, MAST: L.MAST.y, SLOPE_SITE: L.SLOPE_SITE.y, A: L.CABLE.a.y, B: L.CABLE.b.y };
+  const layoutY = { BASE: L.BASE.y, MEADOW: L.MEADOW.y, HUT: L.HUT.y, MAST: L.MAST.y, SLOPE_SITE: L.SLOPE_SITE.y, A: L.CABLE.a.y, B: L.CABLE.b.y, RIDGE: L.RIDGE_SITE.y, SUMMIT: L.SUMMIT.y, NORTH: L.NORTH_MEADOW.y, SERACS: L.SERACS.y };
   return { N, cell: c, H, splat: t.splat, forest: t.forest, normal: nrm, road: t.road, info: t.info, layoutY };
 }
 

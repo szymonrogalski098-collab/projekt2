@@ -31,7 +31,7 @@ export function loadTerrain() {
 }
 
 import * as L from '../../src/world/layout.js';
-function layoutY() { return { BASE: L.BASE.y, MEADOW: L.MEADOW.y, HUT: L.HUT.y, MAST: L.MAST.y, SLOPE_SITE: L.SLOPE_SITE.y, A: L.CABLE.a.y, B: L.CABLE.b.y }; }
-function applyLayoutY(y) { L.BASE.y = y.BASE; L.MEADOW.y = y.MEADOW; L.HUT.y = y.HUT; L.MAST.y = y.MAST; L.SLOPE_SITE.y = y.SLOPE_SITE; L.CABLE.a.y = y.A; L.CABLE.b.y = y.B; }
+function layoutY() { return { BASE: L.BASE.y, MEADOW: L.MEADOW.y, HUT: L.HUT.y, MAST: L.MAST.y, SLOPE_SITE: L.SLOPE_SITE.y, A: L.CABLE.a.y, B: L.CABLE.b.y, RIDGE: L.RIDGE_SITE.y, SUMMIT: L.SUMMIT.y, NORTH: L.NORTH_MEADOW.y, SERACS: L.SERACS.y }; }
+function applyLayoutY(y) { L.BASE.y = y.BASE; L.MEADOW.y = y.MEADOW; L.HUT.y = y.HUT; L.MAST.y = y.MAST; L.SLOPE_SITE.y = y.SLOPE_SITE; L.CABLE.a.y = y.A; L.CABLE.b.y = y.B; L.RIDGE_SITE.y = y.RIDGE; L.SUMMIT.y = y.SUMMIT; L.NORTH_MEADOW.y = y.NORTH; L.SERACS.y = y.SERACS; }
 
 export function loadTrees(terrain) { return placeTrees(terrain); }

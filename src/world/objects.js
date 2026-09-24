@@ -146,7 +146,7 @@ function minUnder(terrain, x, z, w, d, yaw) {
 export function addObjectColliders(world, O) {
   for (const b of O.boxes) {
     // yaw w three.js (obrót wokół Y) -> w kolizji używamy tej samej konwencji: lokalne x = dx*c - dz*s ...
-    world.addBox({ x: b.x, y: b.y, z: b.z, hx: b.w / 2, hy: b.h / 2, hz: b.d / 2, yaw: -b.yaw, tag: b.tag });
+    world.addBox({ x: b.x, y: b.y, z: b.z, hx: b.w / 2, hy: b.h / 2, hz: b.d / 2, yaw: -b.yaw, tag: b.tag, wall: b.wall !== false });
     if (b.roofType === 'gable') world.addBox({ x: b.x, y: b.y + b.h / 2 + b.w * 0.18, z: b.z, hx: b.w * 0.3, hy: b.w * 0.18, hz: b.d / 2, yaw: -b.yaw, tag: b.tag });
     if (b.roofType === 'spire') world.addCyl({ x: b.x, z: b.z, y0: b.y + b.h / 2, y1: b.y + b.h / 2 + 12, r: 1.2, tag: b.tag });
   }

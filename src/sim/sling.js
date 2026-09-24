@@ -27,8 +27,9 @@ export class Load {
 }
 
 export class Sling {
-  constructor(length = 12, maxLoad = 300, n = 8) {
+  constructor(length = 12, maxLoad = 300, n = 8, opts = {}) {
     this.length = length; this.maxLoad = maxLoad; this.n = n;
+    this.winch = !!opts.winch; this.maxLength = opts.maxLength || length;
     this.seg = length / n;
     this.nodeMass = 2.0; this.hookMass = 8;
     this.kSeg = 200000;   // N/m na odcinek (limit stabilności: 2*sqrt(k/m)*h < 2)
@@ -41,12 +42,14 @@ export class Sling {
     this._w = [0, 0, 0]; this._g = { h: 0, n: [0, 1, 0], obj: null, water: false };
     this.hookContact = false;
   }
-  reset(hook) {
+  reset(hook, keepLoad = false) {
     this.nodes = []; this.prev = [];
     for (let i = 0; i <= this.n; i++) { const p = [hook[0], hook[1] - i * this.seg, hook[2]]; this.nodes.push(p); this.prev.push([...p]); }
-    this.load = null;
+    if (!keepLoad) this.load = null;
   }
   get hookPos() { return this.nodes[this.n]; }
+  // wciągarka: zmiana długości liny (spoczynkowej) – węzły dopasowują się same
+  setLength(L) { this.length = Math.max(0.6, Math.min(this.maxLength, L)); this.seg = this.length / this.n; }
   hookVel(dt) { const a = this.nodes[this.n], b = this.prev[this.n]; return [(a[0] - b[0]) / dt, (a[1] - b[1]) / dt, (a[2] - b[2]) / dt]; }
 
   canAttach(load) {
@@ -186,6 +189,11 @@ export class Sling {
       L.onGround = true;
       if (g.water) L.inWater = true;
     } else if (bottom > g.h + 0.05) { L.onGround = false; L.airborne = true; }
+    // zderzenia ładunku z bryłami (ściany lodu, skały, budynki) – wypchnięcie i tłumienie
+    if (env.world.pushOut) {
+      const q = env.world.pushOut(nx, ny, nz, Math.max(L.size[0], L.size[2]) * 0.5);
+      if (q) { nx = q[0]; nz = q[2]; L.prev[0] = nx - (nx - L.prev[0]) * 0.2; L.prev[2] = nz - (nz - L.prev[2]) * 0.2; L.bumps = (L.bumps || 0) + 1; L.lastBump = q[3]; }
+    }
     L.pos[0] = nx; L.pos[1] = ny; L.pos[2] = nz;
     L.vel[0] = vx; L.vel[1] = vy; L.vel[2] = vz;
   }

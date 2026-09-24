@@ -94,6 +94,8 @@ export class Input {
     const e = this.s.expo;
     const cx = padC ? padC.cx : this.expo(this.stick.x, e), cy = padC ? padC.cy : this.expo(this.stick.y, e);
     const ped = padC && Math.abs(padC.ped) > 0.01 ? padC.ped : this.pedal;
-    return { collective: this.collective, collectiveAxis: axis, cx, cy, pedal: ped, action: this.pressed('action') };
+    let winch = (this.isDown('winchDown') ? 1 : 0) - (this.isDown('winchUp') ? 1 : 0);
+    if (gp && this.padActive) { if (gp.buttons[5]?.pressed) winch = 1; if (gp.buttons[4]?.pressed) winch = -1; }
+    return { collective: this.collective, collectiveAxis: axis, cx, cy, pedal: ped, action: this.pressed('action'), winch: winch * (prec ? 0.3 : 1) };
   }
 }

@@ -27,6 +27,14 @@ export const SLOPE_SITE = { x: -1650, z: 1900, y: 1330, r: 55, slopeDeg: 10, dir
 export const MAST = { x: 2750, z: 1290, y: 2015, r: 24 };
 export const CABLE = { a: { x: 700, z: 1520 }, b: { x: 2350, z: -150, y: 1905 }, pylons: 3 };
 export const GLACIER = { x: 2300, z: -3200, r: 950, y: 2320 };
+// miejsca misji rozdziałów 2–4
+export const RIDGE_SITE = { x: 700, z: -2750, y: 2414, dir: 0 };        // wąska grań (lądowanie jedną płozą)
+export const SUMMIT = { x: 2640, z: -2440, y: 3255, r: 9 };             // lądowisko przy szczycie
+export const NORTH_MEADOW = { x: -485, z: -3400, y: 1733, r: 38 };      // łąka za przełęczą
+export const GULLY = { x: 2375, z: -1300 };                              // żleb
+export const LEDGE = { x: 2093, z: 1500, wallX: 2100 };                  // półka na ścianie (ściana na wschód od półki)
+export const SERACS = { x: 2150, z: -2950, gap: 4.2, yaw: 0.5 };         // szczelina między serakami
+export const LAKE_RESCUE = { x: -2300 };                                 // poszkodowany w jeziorze
 export const RIDGE_Z = -2650;
 
 // Płaskie „stemple” (lądowiska) nakładane na końcu generacji – w tych miejscach teren jest idealnie płaski.
@@ -38,7 +46,11 @@ export function stamps() {
     { id: 'meadow', x: MEADOW.x, z: MEADOW.z, r: MEADOW.r, blend: 60, ref: MEADOW },
     { id: 'hut', x: HUT.x, z: HUT.z, r: HUT.r, blend: 220, ref: HUT },
     { id: 'slope', x: SLOPE_SITE.x, z: SLOPE_SITE.z, r: SLOPE_SITE.r, blend: 70, ref: SLOPE_SITE, plane: { deg: SLOPE_SITE.slopeDeg, dir: SLOPE_SITE.dir } },
-    { id: 'mast', x: MAST.x, z: MAST.z, r: MAST.r, blend: 90, ref: MAST },
+    { id: 'mast', x: MAST.x, z: MAST.z, r: MAST.r + 10, blend: 90, ref: MAST },
+    { id: 'summit', x: SUMMIT.x, z: SUMMIT.z, r: SUMMIT.r, blend: 40, ref: SUMMIT },
+    { id: 'north', x: NORTH_MEADOW.x, z: NORTH_MEADOW.z, r: NORTH_MEADOW.r, blend: 80, ref: NORTH_MEADOW },
+    { id: 'ridge', x: RIDGE_SITE.x, z: RIDGE_SITE.z, r: 0, blend: 0, ref: RIDGE_SITE, crest: { len: 16, w: 3.2, drop: 1.7, raise: 7 } },
+    { id: 'seracs', x: SERACS.x, z: SERACS.z, r: 30, blend: 60, ref: SERACS },
     { id: 'cableA', x: CABLE.a.x, z: CABLE.a.z, r: 30, blend: 60, ref: CABLE.a },
     { id: 'cableB', x: CABLE.b.x, z: CABLE.b.z, r: 28, blend: 80, ref: CABLE.b },
   ];

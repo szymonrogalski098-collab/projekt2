@@ -48,6 +48,30 @@ export const AIRCRAFT = {
   },
 };
 
+AIRCRAFT.myszolow = {
+  id: 'myszolow', name: 'Myszołów', desc: 'Średni śmigłowiec ratowniczy z wciągarką i reflektorem. Duży wirnik – ciasno między skałami.',
+  price: 420000,
+  mass: { empty: 1500, max: 2600, pilot: 160 },
+  fuel: { cap: 420, sfc: 0.40 / 3.6e6 },
+  inertia: [4200, 4600, 1700],
+  rotor: { R: 5.5, blades: 4, chord: 0.27, omega: 39.3, a: 5.8, cd0: 0.0095, thMin: -0.02, thMax: 0.27, J: 2300, hubH: 1.9, hubK: 22000, lock: 6.2 },
+  cyclic: { long: 9 * deg, lat: 8 * deg, tau: 0.07 },
+  tail: { arm: 6.3, h: 0.9, R: 0.95, kT: 3800, bias: 0.33, range: 0.62, kv: 230 },
+  engine: { type: 'turbine', P: 540e3, flat: 470e3, tau: 0.8, lapse: 0.75 },
+  drag: [10, 14, 2.1],
+  fin: { area: 1.3, arm: 6.0, hs: 1.4, hsArm: 5.4 },
+  skids: { x: 1.25, y: -1.6, zf: -1.8, zr: 1.5 },
+  hook: [0, -1.4, 0.1],
+  winch: [1.25, 0.6, -0.4], winchLen: 45,
+  gear: { soft: 1.0, hard: 2.0, damage: 3.0, crash: 5.0 },
+  rpm: { low: 0.95, stall: 0.85, over: 1.07 },
+  vne: 70,
+  line: 20, lineMaxLoad: 1000,
+  stab: { kp: 2.6, kd: 0.9, ki: 0.35 },
+  fuselage: [[0, -0.1, -2.3, 1.1], [0, 0.3, 4.0, 0.5], [0, 0.6, 6.6, 0.55]],
+  cockpit: { eye: [-0.4, 0.75, -1.6] },
+};
+
 export function derived(spec) {
   const r = spec.rotor;
   return {

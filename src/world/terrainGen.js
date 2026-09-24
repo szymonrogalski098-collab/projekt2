@@ -285,8 +285,8 @@ export function generateTerrain(opts = {}) {
     let sum = 0, c = 0;
     for (let a = 0; a < 24; a++) for (const rr of [0, 0.5, 1]) { sum += heightAtRaw(sp.x + Math.cos(a / 24 * 6.283) * sp.r * rr, sp.z + Math.sin(a / 24 * 6.283) * sp.r * rr); c++; }
     sp.y = Math.round(sum / c * 10) / 10;
-    if (sp.ref) sp.ref.y = sp.y;
     applyStamp(H, N, cellF, sp);
+    if (sp.ref) sp.ref.y = sp.y;
   }
 
   const tE = Date.now();
@@ -355,6 +355,7 @@ export function distSeg(px, pz, ax, az, bx, bz) {
 }
 
 function applyStamp(H, N, cell, s) {
+  if (s.crest) return applyCrest(H, N, cell, s);
   const R = s.r + s.blend;
   const i0 = Math.max(0, Math.floor((s.x - R + HALF) / cell)), i1 = Math.min(N - 1, Math.ceil((s.x + R + HALF) / cell));
   const j0 = Math.max(0, Math.floor((s.z - R + HALF) / cell)), j1 = Math.min(N - 1, Math.ceil((s.z + R + HALF) / cell));
@@ -367,6 +368,23 @@ function applyStamp(H, N, cell, s) {
     if (s.plane) ty += Math.tan(s.plane.deg * Math.PI / 180) * ((x - s.x) * Math.cos(s.plane.dir) + (z - s.z) * Math.sin(s.plane.dir));
     H[idx] = s.soft ? lerp(H[idx], ty + (H[idx] - ty) * 0.08, w) : lerp(H[idx], ty, w);
   }
+}
+
+// Wąska grań: płaski grzbiet (szer. w, dł. len) wzdłuż kierunku dir, strome zbocza po bokach
+function applyCrest(H, N, cell, s) {
+  const c = s.crest, R = 70, top = s.y + c.raise;
+  const dx0 = Math.cos(s.dir || 0), dz0 = Math.sin(s.dir || 0);
+  const i0 = Math.max(0, Math.floor((s.x - R + HALF) / cell)), i1 = Math.min(N - 1, Math.ceil((s.x + R + HALF) / cell));
+  const j0 = Math.max(0, Math.floor((s.z - R + HALF) / cell)), j1 = Math.min(N - 1, Math.ceil((s.z + R + HALF) / cell));
+  for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) {
+    const x = -HALF + i * cell - s.x, z = -HALF + j * cell - s.z, idx = j * N + i;
+    const along = x * dx0 + z * dz0, across = -x * dz0 + z * dx0;
+    const ea = Math.max(0, Math.abs(across) - c.w / 2), el = Math.max(0, Math.abs(along) - c.len / 2);
+    const target = top - ea * c.drop - el * 0.35;
+    const w = 1 - smoothstep(R * 0.55, R, Math.hypot(x, z));
+    H[idx] = lerp(H[idx], Math.max(Math.min(H[idx], target), target - 60), w);
+  }
+  s.y = top;
 }
 
 // Interpolacja trójkątna zgodna z siatką renderu (przekątna (i,j)-(i+1,j+1)).
