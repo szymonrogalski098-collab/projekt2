@@ -53,6 +53,7 @@ export class TerrainMesh {
     const mat = new THREE.MeshStandardMaterial({ roughness: 0.9, metalness: 0 });
     const U = this.uniforms;
     enhance(mat, {
+      matte: true,
       onShader: sh => {
         Object.assign(sh.uniforms, U);
         sh.vertexShader = sh.vertexShader
@@ -152,14 +153,17 @@ varying float vMorph;
 float hFetch( ivec2 c ) { c = clamp( c, ivec2( 0 ), ivec2( int( mapN ) - 1 ) ); return texelFetch( hMap, c, 0 ).r; }
 float terrainH( vec2 w ) {
   vec2 u = ( w + mapHalf ) / mapCell;
-  vec2 uc = clamp( u, vec2( 0.0 ), vec2( mapN - 1.001 ) );
+  // poza mapą: odbicie lustrzane (ciągłość gór) + łagodne wznoszenie zamykające horyzont
+  float M = mapN - 1.001;
+  vec2 m = u;
+  m = mix( m, -m, step( m, vec2( 0.0 ) ) );
+  m = mix( m, 2.0 * M - m, step( vec2( M ), m ) );
+  vec2 uc = clamp( m, vec2( 0.0 ), vec2( M ) );
   ivec2 i = ivec2( floor( uc ) ); vec2 f = uc - vec2( i );
   float h00 = hFetch( i ), h10 = hFetch( i + ivec2( 1, 0 ) ), h01 = hFetch( i + ivec2( 0, 1 ) ), h11 = hFetch( i + ivec2( 1, 1 ) );
   float h = f.x >= f.y ? h00 + f.x * ( h10 - h00 ) + f.y * ( h11 - h10 ) : h00 + f.y * ( h01 - h00 ) + f.x * ( h11 - h01 );
-  // poza mapą: wznoszenie (zamknięcie horyzontu)
   vec2 o = max( abs( w ) - mapHalf, 0.0 );
-  float od = length( o );
-  return h + od * 0.45;
+  return h + length( o ) * 0.12;
 }
 `;
 
@@ -223,7 +227,7 @@ vec4 col = mix( grass, field, valley * 0.85 );
 { vec2 fp = mat2( 0.96, 0.28, -0.28, 0.96 ) * w / vec2( 70.0, 38.0 ); vec2 fi = floor( fp ); float fh = fract( sin( dot( fi, vec2( 12.9898, 78.233 ) ) ) * 43758.5453 );
   vec3 tint = fh < 0.25 ? vec3( 1.15, 1.05, 0.7 ) : fh < 0.5 ? vec3( 0.85, 0.95, 0.8 ) : fh < 0.75 ? vec3( 1.0, 1.0, 1.0 ) : vec3( 1.08, 1.1, 0.85 );
   vec2 ff = abs( fract( fp ) - 0.5 ); float edge = smoothstep( 0.47, 0.5, max( ff.x, ff.y ) );
-  col.rgb *= mix( vec3( 1.0 ), tint * ( 1.0 - edge * 0.25 ), valley * ( 1.0 - smoothstep( 800.0, 2500.0, camD ) * 0.5 ) ); }
+  col.rgb *= mix( vec3( 1.0 ), tint * ( 1.0 - edge * 0.12 ), valley * ( 1.0 - smoothstep( 0.05, 0.3, sp.r ) ) * ( 1.0 - smoothstep( 800.0, 2500.0, camD ) * 0.5 ) ); }
 // odcień traw z wysokością: wyżej suchsze, żółtobrązowe
 col.rgb *= mix( vec3( 1.0 ), vec3( 1.12, 0.98, 0.72 ), smoothstep( 1500.0, 2100.0, h + mac2 * 200.0 ) );
 col.rgb *= 0.85 + 0.3 * mac;

@@ -124,7 +124,9 @@ export class Heli {
     const theta = R.thMin + (R.thMax - R.thMin) * clamp(c.collective, 0, 1);
     const lam = (Vc + this.vi) / tip;
     let CT = D.sigma * R.a / 2 * (theta / 3 * (1 + 1.5 * mu * mu) - lam / 2);
-    const CTmax = D.sigma * 0.125 * (1 - 0.8 * mu * mu) * (1 - this.damage.rotor * 0.3);
+    // przeciągnięcie łopat przy niskich obrotach – gwałtowna utrata ciągu poniżej ~82%
+    const rpmStall = 0.45 + 0.55 * smoothstep(S.rpm.stall - 0.12, S.rpm.stall + 0.03, this.rpm);
+    const CTmax = D.sigma * 0.125 * (1 - 0.8 * mu * mu) * (1 - this.damage.rotor * 0.3) * rpmStall;
     let stall = 0;
     if (CT > 0.85 * CTmax) { const e = CT - 0.85 * CTmax; stall = e / CTmax; CT = 0.85 * CTmax + 0.15 * CTmax * Math.tanh(e / (0.15 * CTmax)); }
     if (CT < -0.3 * CTmax) CT = -0.3 * CTmax;
@@ -185,7 +187,7 @@ export class Heli {
     if (this.engineTemp > 0.95) this.damage.engine = Math.min(1, this.damage.engine + dt * 0.01);
     if (this.rpm < S.rpm.low && this.rpm > 0.3) this.stats.lowRpmTime += dt;
     if (this.rpm > S.rpm.over + 0.05) { this.damage.rotor = Math.min(1, this.damage.rotor + dt * 0.05); this.stats.overspeed += dt; }
-    if (this.rpm < 0.62 && this.t > 0.5 && (T > 0 || !this.onGround) && !this.onGround) this.crash('Utrata obrotów wirnika', { rpm: this.rpm });
+    if (this.rpm < 0.62 && this.t > 0.5 && !this.onGround && this.tel.agl > 2.5) this.crash('Utrata obrotów wirnika', { rpm: this.rpm });
 
     // --- siły i momenty ---
     const Fw = new Vector3(0, -m * G, 0);       // świat
@@ -255,7 +257,7 @@ export class Heli {
         const Ft = dx.multiplyScalar(-kt).addScaledVector(vt, -ct);
         const fwdW = _v3.set(0, 0, -1).applyQuaternion(this.quat);
         const along = Ft.dot(fwdW);
-        const muA = 0.45, muS = 0.75;
+        const muA = 0.3, muS = 0.7;
         const fA = fwdW.clone().multiplyScalar(along), fS = Ft.clone().sub(fA);
         const limA = muA * Fn, limS = muS * Fn;
         let slip = false;
@@ -365,7 +367,8 @@ export class Heli {
       const g = W.ground(pw.x, pw.z, pw.y + 0.5);
       if (pw.y - f[3] < g.h - 0.05) {
         this.pointVel(rb, pv);
-        if (pv.length() > 2.5 || g.water) return this.crash(g.water ? 'Wodowanie' : 'Zderzenie kadłuba z ziemią', { v: pv.length() });
+        const vn = -(pv.x * g.n[0] + pv.y * g.n[1] + pv.z * g.n[2]);
+        if (vn > 2.5 || pv.length() > 12 || g.water) return this.crash(g.water ? 'Wodowanie' : 'Zderzenie kadłuba z ziemią', { v: Math.max(vn, 0) });
         // miękki kontakt – wypchnij
         this.pos.y += (g.h - (pw.y - f[3])) * 0.5; if (this.vel.y < 0) this.vel.y *= 0.5;
       }

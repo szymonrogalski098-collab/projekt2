@@ -9,7 +9,7 @@ const NEAR_R = 420, FAR_R = 5200, NEAR_MAX = 9000, FAR_MAX = 160000;
 function spruceGeo(rng) {
   const parts = [];
   const trunk = new THREE.CylinderGeometry(0.018, 0.03, 0.35, 5, 1); trunk.translate(0, 0.175, 0);
-  paint(trunk, [0.18, 0.12, 0.08]); parts.push(trunk);
+  paint(trunk, [0.06, 0.04, 0.025]); parts.push(trunk);
   const tiers = 6;
   for (let i = 0; i < tiers; i++) {
     const t = i / tiers;
@@ -22,20 +22,20 @@ function spruceGeo(rng) {
     }
     c.translate(0, y + hgt / 2, 0);
     const g = 0.75 + 0.25 * t;
-    paint(c, [0.07 * g, 0.16 * g, 0.08 * g], [0.03, 0.07, 0.035]);
+    paint(c, [0.028 * g, 0.062 * g, 0.034 * g], [0.012, 0.028, 0.012]);
     parts.push(c);
   }
   return merge(parts);
 }
 function larchGeo(rng) {
   const parts = [];
-  const trunk = new THREE.CylinderGeometry(0.02, 0.035, 0.5, 5, 1); trunk.translate(0, 0.25, 0); paint(trunk, [0.25, 0.2, 0.15]); parts.push(trunk);
+  const trunk = new THREE.CylinderGeometry(0.02, 0.035, 0.5, 5, 1); trunk.translate(0, 0.25, 0); paint(trunk, [0.1, 0.08, 0.06]); parts.push(trunk);
   for (let i = 0; i < 4; i++) {
     const s = new THREE.IcosahedronGeometry(0.2 - i * 0.03, 1);
     const p = s.attributes.position;
     for (let k = 0; k < p.count; k++) p.setXYZ(k, p.getX(k) * (0.9 + rng.float(0, 0.25)), p.getY(k) * 1.2, p.getZ(k) * (0.9 + rng.float(0, 0.25)));
     s.translate(rng.float(-0.04, 0.04), 0.35 + i * 0.17, rng.float(-0.04, 0.04));
-    paint(s, [0.18, 0.28, 0.1], [0.06, 0.08, 0.04]); parts.push(s);
+    paint(s, [0.07, 0.11, 0.04], [0.03, 0.04, 0.015]); parts.push(s);
   }
   return merge(parts);
 }
@@ -59,7 +59,7 @@ function merge(parts) {
   // normalne „zaokrąglone” (korona jak kula) – miękkie światło
   for (let k = 0; k < n; k++) {
     const x = pos[k * 3], y = pos[k * 3 + 1] - 0.55, z = pos[k * 3 + 2], l = Math.hypot(x, y * 0.6, z) || 1;
-    nor[k * 3] = nor[k * 3] * 0.4 + x / l * 0.6; nor[k * 3 + 1] = nor[k * 3 + 1] * 0.4 + y * 0.6 / l * 0.6 + 0.2; nor[k * 3 + 2] = nor[k * 3 + 2] * 0.4 + z / l * 0.6;
+    nor[k * 3] = nor[k * 3] * 0.4 + x / l * 0.6; nor[k * 3 + 1] = nor[k * 3 + 1] * 0.4 + y * 0.6 / l * 0.6; nor[k * 3 + 2] = nor[k * 3 + 2] * 0.4 + z / l * 0.6;
   }
   return m;
 }
@@ -90,8 +90,8 @@ export class Forest {
     this.u = { uTime: { value: 0 }, uWind: { value: new THREE.Vector3() }, uHeli: { value: new THREE.Vector4(0, -1e4, 0, 0) } };
     const U = this.u;
     const mkMat = () => {
-      const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0 });
-      enhance(m, { onShader: sh => { Object.assign(sh.uniforms, U); sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\n' + SWAY).replace('#include <begin_vertex>', '#include <begin_vertex>\n' + SWAY_MAIN); } });
+      const m = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.95, metalness: 0, envMapIntensity: 0.7 });
+      enhance(m, { matte: true, onShader: sh => { Object.assign(sh.uniforms, U); sh.vertexShader = sh.vertexShader.replace('#include <common>', '#include <common>\n' + SWAY).replace('#include <begin_vertex>', '#include <begin_vertex>\n' + SWAY_MAIN); } });
       return m;
     };
     this.geos = [spruceGeo(rng), larchGeo(rng)];
@@ -117,9 +117,10 @@ export class Forest {
     const cam = new THREE.OrthographicCamera(-0.5, 0.5, 1.0, 0, -5, 5);
     const prev = renderer.getRenderTarget();
     const pc = new THREE.Color(); renderer.getClearColor(pc); const pa = renderer.getClearAlpha();
+    const ac = renderer.autoClear; renderer.autoClear = false;
     renderer.setRenderTarget(rt); renderer.setClearColor(0x000000, 0); renderer.clear();
     this.geos.forEach((g, i) => {
-      const m = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true }));
+      const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true }));
       scene.add(m);
       rt.viewport.set(i * W / 2, 0, W / 2, H); renderer.setRenderTarget(rt);
       cam.position.set(0, 0, 2); cam.lookAt(0, 0, 0); cam.updateProjectionMatrix();
@@ -127,7 +128,8 @@ export class Forest {
       scene.remove(m);
     });
     rt.viewport.set(0, 0, W, H);
-    renderer.setRenderTarget(prev); renderer.setClearColor(pc, pa);
+    renderer.setRenderTarget(prev); renderer.setClearColor(pc, pa); renderer.autoClear = ac;
+    this.atlasRT = rt;
     return rt.texture;
   }
 
@@ -141,8 +143,9 @@ export class Forest {
     this.farAttr.setUsage(THREE.DynamicDrawUsage);
     g.setAttribute('tree', this.farAttr);
     g.instanceCount = 0;
-    const mat = new THREE.MeshStandardMaterial({ map: this.atlas, alphaTest: 0.45, roughness: 1, metalness: 0 });
+    const mat = new THREE.MeshStandardMaterial({ map: this.atlas, alphaTest: 0.45, roughness: 1, metalness: 0, color: 0xb8b8b8, envMapIntensity: 0.6 });
     enhance(mat, {
+      matte: true,
       onShader: sh => {
         sh.vertexShader = sh.vertexShader
           .replace('#include <common>', '#include <common>\nattribute vec4 tree;\nvarying float vKind;')
@@ -152,7 +155,7 @@ export class Forest {
             vec3 toC = cameraPosition - tree.xyz; toC.y = 0.0; toC = normalize( toC + 1e-4 );
             vec3 rgt = vec3( toC.z, 0.0, -toC.x );
             vec3 transformed = tree.xyz + rgt * position.x * th * ( vKind > 0.5 ? 1.0 : 0.95 ) + vec3( 0.0, position.y * th, 0.0 );`)
-          .replace('#include <beginnormal_vertex>', 'vec3 objectNormal = normalize( vec3( 0.0, 0.6, 0.0 ) + normalize( cameraPosition - tree.xyz ) );');
+          .replace('#include <beginnormal_vertex>', 'vec3 tc = cameraPosition - tree.xyz; tc.y = 0.0; vec3 objectNormal = normalize( vec3( 0.0, 0.35, 0.0 ) + normalize( tc + 1e-3 ) );');
       },
     });
     const mesh = new THREE.Mesh(g, mat);

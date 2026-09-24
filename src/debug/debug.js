@@ -28,7 +28,7 @@ export function installDebug(app) {
         const objs = s.mission.objs, o = preset === 'koniec' ? objs[objs.length - 1] : s.mission.current;
         o.init(s.mission);
         const m = o.marker() || { x: h.pos.x, y: h.pos.y, z: h.pos.z };
-        if (preset === 'koniec') { api.teleport(m.x + 30, m.y + 25, m.z + 40, 200, 0); }
+        if (preset === 'koniec') { const hd = Math.atan2(-30, 40) * 180 / Math.PI; api.teleport(m.x + 30, m.y + 18, m.z + 40, hd + 180, 0); }
         else { api.freeCam([m.x, m.y + 380, m.z + 160], [m.x, m.y, m.z]); return; }
       }
       app.freeCam = null;
@@ -40,6 +40,8 @@ export function installDebug(app) {
       const cam = g.camera; cam.position.set(...pos); cam.lookAt(...look); cam.updateProjectionMatrix();
       g.frame(1 / 60, { heli: app.session.heli, heliState: { pos: app.session.heli.pos, quat: app.session.heli.quat, rpm: app.session.heli.rpm, a1: 0, b1: 0 }, wind: [0, 0, 0] });
     },
+    // kroki symulacji z prawdziwym obiektem Input (klawiatura/pad), bez renderu
+    stepInput(seconds) { const s = app.session; for (let i = 0; i < seconds / DT && s.mission.status === 'running'; i++) { const raw = app.input.poll(DT); app.lastRaw = raw; s.step(raw); } app.prev.pos.copy(s.heli.pos); app.prev.quat.copy(s.heli.quat); app.view.pos.copy(s.heli.pos); app.view.quat.copy(s.heli.quat); const h = s.heli; return { agl: h.tel.agl, vs: h.vel.y, gs: h.tel.gs, crashed: h.crashed, onGround: h.onGround, col: app.input.collective, maxImpact: h.stats.maxImpact, hard: h.stats.hardLandings, roll: h.attitude().roll * 57.3, pitch: h.attitude().pitch * 57.3, idx: s.mission.idx, status: s.mission.status }; },
     renderOnce() { const t = performance.now(); if (app.session) app.render(1 / 60); else app.renderIdle(1 / 60); return performance.now() - t; },
     stopLoop(v = true) { app.loopStopped = v; },
     fly(seconds, raw) { const s = app.session; for (let i = 0; i < seconds / DT; i++) s.step({ collective: 0, cx: 0, cy: 0, pedal: 0, ...raw }); app.prev.pos.copy(s.heli.pos); app.prev.quat.copy(s.heli.quat); app.view.pos.copy(s.heli.pos); app.view.quat.copy(s.heli.quat); },

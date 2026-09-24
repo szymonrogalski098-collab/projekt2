@@ -32,7 +32,11 @@ export class Input {
     addEventListener('gamepaddisconnected', () => { this.padIndex = null; this.padActive = false; });
     this.look = { x: 0, y: 0 };
   }
-  lock() { try { const p = this.el.requestPointerLock({ unadjustedMovement: true }); if (p && p.catch) p.catch(() => this.el.requestPointerLock()); } catch { /* bez blokady */ } }
+  lock() {
+    if (!navigator.userActivation || navigator.userActivation.isActive) {
+      try { const p = this.el.requestPointerLock({ unadjustedMovement: true }); if (p && p.catch) p.catch(() => { try { const q = this.el.requestPointerLock(); if (q && q.catch) q.catch(() => {}); } catch { /* */ } }); } catch { /* bez blokady */ }
+    }
+  }
   unlock() { if (document.pointerLockElement) document.exitPointerLock(); }
   mouse(e) {
     if (!this.enabled || !this.locked) return;

@@ -205,7 +205,7 @@ export function buildObjectMeshes(O, terrain) {
       for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
         const x0 = s.x - s.w / 2 + i * dx, z0 = s.z - s.d / 2 + j * dz;
         const h = (x, z) => terrain.height(x, z) + 0.06;
-        B.concrete.quad([x0, h(x0, z0 + dz), z0 + dz], [x0 + dx, h(x0 + dx, z0 + dz), z0 + dz], [x0 + dx, h(x0 + dx, z0), z0], [x0, h(x0, z0), z0], [0, 1, 0], [[0, 0], [dx / 8, 0], [dx / 8, dz / 8], [0, dz / 8]], [0.95, 0.95, 0.93]);
+        B.concrete.quad([x0, h(x0, z0 + dz), z0 + dz], [x0 + dx, h(x0 + dx, z0 + dz), z0 + dz], [x0 + dx, h(x0 + dx, z0), z0], [x0, h(x0, z0), z0], [0, 1, 0], [[0, 0], [dx / 8, 0], [dx / 8, dz / 8], [0, dz / 8]], [0.62, 0.62, 0.6]);
       }
     }
     if (s.kind === 'crane') lattice(B.steel, s.x, s.z, s.y, s.y + s.h, 1.1, 1.0, 0.2, [0.95, 0.75, 0.1]);

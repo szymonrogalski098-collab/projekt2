@@ -7,6 +7,8 @@ import { exportCode, importCode } from '../core/save.js';
 import { resolvePoint } from '../game/objectives.js';
 
 const $ = (s, r = document) => r.querySelector(s);
+const KEYN = { ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', ShiftLeft: 'Shift', ShiftRight: 'Shift', Space: 'Spacja', Escape: 'Esc', ControlLeft: 'Ctrl', ControlRight: 'Ctrl', Tab: 'Tab', Enter: 'Enter' };
+export const keyName = c => KEYN[c] || String(c).replace(/^Key/, '').replace(/^Digit/, '');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const f1 = v => (Math.round(v * 10) / 10).toString().replace('.', ',');
 const time = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, '0')}`;
@@ -75,7 +77,7 @@ export class Menus {
       const sh = Math.max(0.25, (nx * -0.55 + ny * 0.7 + nz * -0.45) / l);
       const f = T.forestAt(x, z);
       let r = 0.52 + (h - 900) / 2600 * 0.3, gg = 0.58 + (h - 900) / 2600 * 0.2, b = 0.42 + (h - 900) / 2600 * 0.35;
-      if (h > 2250) { const k = Math.min(1, (h - 2250) / 250); r += (0.95 - r) * k; gg += (0.96 - gg) * k; b += (0.98 - b) * k; }
+      if (h > 2650) { const k = Math.min(1, (h - 2650) / 250); r += (0.95 - r) * k; gg += (0.96 - gg) * k; b += (0.98 - b) * k; }
       r = r * (1 - f * 0.6) + 0.12 * f * 0.6; gg = gg * (1 - f * 0.6) + 0.26 * f * 0.6; b = b * (1 - f * 0.6) + 0.14 * f * 0.6;
       const wtr = this.app.ctx.world.water.test(x, z) && h < this.app.ctx.world.water.level;
       const k = (j * W + i) * 4;
@@ -104,7 +106,7 @@ export class Menus {
   }
   map() {
     const s = this.screens.map, save = this.app.save;
-    s.innerHTML = `<div class="mapwrap"></div><div class="side"><div class="row" style="justify-content:space-between;align-items:center"><h2>Region</h2><button class="btn small" data-a="start">Menu</button></div><div id="chapters"></div><div id="mdetail"></div></div>`;
+    s.innerHTML = `<div class="mapwrap"></div><div class="side"><div class="row" style="justify-content:space-between;align-items:center"><h2>Region</h2><button class="btn small" data-a="start">Menu</button></div><div id="mdetail"></div><div id="chapters"></div></div>`;
     const wrap = $('.mapwrap', s); const cv = this.mapCanvas(); wrap.appendChild(cv);
     const place = () => {
       wrap.querySelectorAll('.pin').forEach(p => p.remove());
@@ -121,7 +123,7 @@ export class Menus {
       // baza
       const b = resolvePoint({ ctx: this.app.ctx, session: { loads: [] } }, 'pad:base1');
       const bp = document.createElement('div'); bp.className = 'pin'; bp.style.background = '#fff'; bp.style.borderRadius = '3px'; bp.textContent = 'H'; bp.title = 'Baza';
-      bp.style.left = (rect.left - wr.left + (b.x + 4096) / 8192 * rect.width) + 'px'; bp.style.top = (rect.top - wr.top + (b.z + 4096) / 8192 * rect.height) + 'px'; wrap.appendChild(bp);
+      bp.style.left = (rect.left - wr.left + (b.x + 4096) / 8192 * rect.width + 16) + 'px'; bp.style.top = (rect.top - wr.top + (b.z + 4096) / 8192 * rect.height + 14) + 'px'; bp.style.width = bp.style.height = '18px'; wrap.appendChild(bp);
     };
     requestAnimationFrame(place); this._place = place; onresize = () => this.current === 'map' && place();
     const ch = $('#chapters', s);
@@ -255,7 +257,7 @@ export class Menus {
       <h3>Dźwięk</h3>
       <div class="set">Głośność <span>${rng('volume', 0, 1, 0.05)}</span></div></div>`;
     const keys = $('#keys', s);
-    const drawKeys = () => { keys.innerHTML = `<h3>Klawisze</h3>` + Object.keys(DEFAULT_KEYS).map(k => `<div class="set">${KEY_LABELS[k]} <button class="btn small keybtn" data-key="${k}">${S.keys[k]}</button></div>`).join('') + `<div class="set"><span class="muted">Mysz: drążek cykliczny · środkowy przycisk: centrowanie · prawy + ruch: rozglądanie</span><button class="btn small" id="kreset">Domyślne</button></div>`;
+    const drawKeys = () => { keys.innerHTML = `<h3>Klawisze</h3>` + Object.keys(DEFAULT_KEYS).map(k => `<div class="set">${KEY_LABELS[k]} <button class="btn small keybtn" data-key="${k}">${keyName(S.keys[k])}</button></div>`).join('') + `<div class="set"><span class="muted">Mysz: drążek cykliczny · środkowy przycisk: centrowanie · prawy + ruch: rozglądanie</span><button class="btn small" id="kreset">Domyślne</button></div>`;
       keys.querySelectorAll('[data-key]').forEach(b => b.onclick = () => { b.textContent = '…naciśnij klawisz'; this.app.input.onKeyCapture = code => { S.keys[b.dataset.key] = code; this.app.input.onKeyCapture = null; this.app.saveSettings(); drawKeys(); }; });
       $('#kreset', keys).onclick = () => { S.keys = { ...DEFAULT_KEYS }; this.app.saveSettings(); drawKeys(); }; };
     drawKeys();
@@ -283,7 +285,7 @@ export class Menus {
   }
 
   controls(back) {
-    const s = this.screens.controls, K = this.app.settings.keys, k = c => `<kbd>${esc(c.replace(/^Key/, '').replace('Left', ''))}</kbd>`;
+    const s = this.screens.controls, K = this.app.settings.keys, k = c => `<kbd>${esc(keyName(c))}</kbd>`;
     s.innerHTML = `<div class="center card" style="width:min(720px,94vw)"><h2>Sterowanie</h2>
       <div class="kv" style="margin-top:14px;grid-template-columns:220px 1fr;line-height:1.9">
       <span>Drążek cykliczny</span><b>mysz (kliknij w obraz, aby przechwycić kursor) · strzałki</b>

@@ -256,10 +256,13 @@ export class Autopilot {
     if (landing && this.phase === 'descend' && h.onGround) {
       target = 0; this.colI = Math.max(0.3, this.colI - dt * 0.4);
     } else {
-      this.colI = clamp(this.colI + (vsCmd - vel.y) * 0.12 * dt, 0.15, 0.95);
-      target = clamp(this.colI + (vsCmd - vel.y) * 0.09, 0, 1);
+      // z ładunkiem na linie: filtrowana prędkość pionowa i mniejsze wzmocnienie (bez pobudzania „bungee”)
+      this.vsF = this.vsF === undefined ? vel.y : this.vsF + (vel.y - this.vsF) * Math.min(1, dt / (sl ? 0.6 : 0.05));
+      const kP = sl ? 0.045 : 0.09, kI = sl ? 0.07 : 0.12;
+      this.colI = clamp(this.colI + (vsCmd - this.vsF) * kI * dt, 0.15, 0.95);
+      target = clamp(this.colI + (vsCmd - this.vsF) * kP, 0, 1);
       if (h.onGround && vsCmd > 0) { target = Math.max(target, this.lever + 0.004); this.colI = Math.max(this.colI, this.lever); }
-      if (h.rpm < 0.965) target = Math.min(target, this.lever - 0.01);
+      if (h.rpm < 0.975) { target = Math.min(target, this.lever - (0.975 - h.rpm) * 8 * dt); this.colI = Math.min(this.colI, this.lever); }
     }
     const dl = clamp(target - this.lever, -this.rate * dt, this.rate * dt);
     this.lever = clamp(this.lever + dl, 0, 1);

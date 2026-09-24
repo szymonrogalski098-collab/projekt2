@@ -11,7 +11,7 @@ export const AIRCRAFT = {
     rotor: { R: 3.9, blades: 2, chord: 0.19, omega: 55.5, a: 5.7, cd0: 0.0082, thMin: -0.02, thMax: 0.265, J: 330, hubH: 1.55, hubK: 1500, lock: 4.6 },
     cyclic: { long: 8.5 * deg, lat: 7 * deg, tau: 0.05 },
     tail: { arm: 4.65, h: 0.55, R: 0.53, kT: 900, bias: 0.34, range: 0.62, kv: 55 },
-    engine: { type: 'piston', P: 110e3, tau: 0.22, lapse: 1.13 },
+    engine: { type: 'piston', P: 96e3, tau: 0.22, lapse: 1.2 },
     drag: [3.6, 5.5, 0.72], // CdA [bok x, pion y, przód z] m²
     fin: { area: 0.45, arm: 4.4, hs: 0.5, hsArm: 3.9 },
     skids: { x: 0.98, y: -1.22, zf: -1.15, zr: 1.05 },
@@ -21,7 +21,7 @@ export const AIRCRAFT = {
     vne: 52, // m/s (~101 kt)
     line: 12, lineMaxLoad: 250,
     stab: { kp: 2.2, kd: 0.75, ki: 0.35 },
-    fuselage: [[0, -0.2, -1.6, 0.9], [0, 0.15, 3.2, 0.35], [0, 0.4, 4.9, 0.45]], // punkty zderzeniowe [x,y,z,r]
+    fuselage: [[0, -0.05, -1.55, 0.72], [0, 0.15, 3.2, 0.35], [0, 0.4, 4.9, 0.45]], // punkty zderzeniowe [x,y,z,r]
     cockpit: { eye: [-0.3, 0.55, -0.95] },
   },
   kos: {
@@ -43,7 +43,7 @@ export const AIRCRAFT = {
     vne: 64,
     line: 18, lineMaxLoad: 600,
     stab: { kp: 2.4, kd: 0.8, ki: 0.35 },
-    fuselage: [[0, -0.2, -2.0, 1.1], [0, 0.2, 3.8, 0.4], [0, 0.5, 6.2, 0.5]],
+    fuselage: [[0, -0.1, -2.0, 0.9], [0, 0.2, 3.8, 0.4], [0, 0.5, 6.2, 0.5]],
     cockpit: { eye: [-0.35, 0.65, -1.3] },
   },
 };

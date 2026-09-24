@@ -176,11 +176,11 @@ export class App {
       const eye = new THREE.Vector3(...h.spec.cockpit.eye).applyQuaternion(quat).add(pos);
       cam.position.copy(eye);
       cam.quaternion.copy(quat);
-      cam.rotateY(-look.x); cam.rotateX(-look.y);
+      cam.rotateY(-look.x); cam.rotateX(-look.y - 0.14);
       cam.rotateX(sh()); cam.rotateZ(sh());
       cam.fov = S.fov + 6;
     } else if (this.camMode === 'hook') {
-      const p = new THREE.Vector3(0, h.spec.skids.y + 0.3, -0.3).applyQuaternion(quat).add(pos);
+      const p = new THREE.Vector3(0, h.spec.skids.y + (h.onGround ? 0.6 : 0.05), 0.2).applyQuaternion(quat).add(pos);
       cam.position.copy(p);
       const f = new THREE.Vector3(Math.sin(att.heading), 0, -Math.cos(att.heading));
       cam.up.copy(f); cam.lookAt(p.x, p.y - 10, p.z); cam.up.set(0, 1, 0);
@@ -256,6 +256,7 @@ export class App {
       if (t) hookDist = Math.hypot(hk[0] - t.x, hk[2] - t.z);
       if (sl.load) loadAgl = sl.load.pos[1] - sl.load.half - this.ctx.world.ground(sl.load.pos[0], sl.load.pos[2], sl.load.pos[1]).h;
     }
+    this.hud.root.classList.toggle('cockpit', this.camMode === 'cockpit');
     this.hud.update(dt, { heli: h, att, raw: this.lastRaw || { cx: 0, cy: 0, collective: 0, pedal: 0 }, objective: o, time: s.mission.time, limit: s.def.limits?.time, targetScreen, sling: sl, hookDist, hookAgl, loadAgl, camLabel: CAM_LABEL[this.camMode] });
     // --- dźwięk ---
     const E = h.spec.engine;

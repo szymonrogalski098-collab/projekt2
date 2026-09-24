@@ -53,6 +53,14 @@ if (scenario === 'menu') {
       await shot(`${id}-${preset}`);
     }
   }
+} else if (scenario === 'ui') {
+  // odprawa, lot, podsumowanie, pauza, ustawienia
+  await G(() => { window.__game.app.ui('map'); window.__game.app.menus.selectMission('c1m1'); }); await p.waitForTimeout(500); await shot('ui-brief');
+  const r = await G(() => window.__game.runBot('c1m1')); console.log(JSON.stringify(r.result && { medal: r.result.medal, time: r.result.time }));
+  await G(() => { window.__game.app.finish(); }); await p.waitForTimeout(400); await shot('ui-debrief');
+  await G(() => { window.__game.setLevel('c1m1'); window.__game.capture('gracz'); window.__game.app.pause(); }); await p.waitForTimeout(300); await shot('ui-pause');
+  await G(() => window.__game.app.ui('settings')); await p.waitForTimeout(300); await shot('ui-settings');
+  await G(() => window.__game.app.ui('controls')); await p.waitForTimeout(300); await shot('ui-controls');
 } else if (scenario === 'perf') {
   await G(() => window.__game.setLevel('c1m2'));
   await G(() => window.__game.teleport(0, null, 1500, 0, 30));

@@ -49,6 +49,7 @@ export class Audio {
   // st: {rpm, blades, omega, load(0..1+), thrust ratio, ias, engine type, power frac, lowRpm, vrs, inside(cockpit), paused}
   update(st) {
     if (!this.ctx || !this.on) return;
+    for (const k in st) if (typeof st[k] === 'number' && !isFinite(st[k])) st[k] = 0;
     const C = this.ctx, t = C.currentTime, k = 0.08;
     const run = st.paused ? 0 : 1;
     this.out.gain.setTargetAtTime(run * (st.inside ? 0.8 : 1), t, 0.1);

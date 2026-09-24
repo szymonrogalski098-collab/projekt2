@@ -106,21 +106,24 @@ export class HeliModel {
     this.panelCanvas = typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(1024, 384) : Object.assign(document.createElement('canvas'), { width: 1024, height: 384 });
     this.panelTex = new THREE.CanvasTexture(this.panelCanvas); this.panelTex.colorSpace = THREE.SRGBColorSpace; this.panelTex.anisotropy = 8;
     const panelMat = enhance(new THREE.MeshStandardMaterial({ map: this.panelTex, roughness: 0.6, emissive: 0xffffff, emissiveMap: this.panelTex, emissiveIntensity: 0.12 }), { noFog: true });
-    const panel = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 0.41), panelMat);
-    panel.position.set(0, eye[1] - 0.42, eye[2] - 0.62); panel.rotation.x = -0.45;
+    const panel = new THREE.Mesh(new THREE.PlaneGeometry(0.96, 0.36), panelMat);
+    panel.position.set(0, eye[1] - 0.36, eye[2] - 0.6); panel.rotation.x = -0.42;
     c.add(panel);
-    const hood = new THREE.Mesh(new THREE.BoxGeometry(1.2, 0.05, 0.45), dark); hood.position.set(0, eye[1] - 0.24, eye[2] - 0.7); c.add(hood);
-    const pedestal = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.5, 0.4), dark); pedestal.position.set(0, eye[1] - 0.85, eye[2] - 0.55); c.add(pedestal);
+    const bezel = new THREE.Mesh(new THREE.BoxGeometry(1.0, 0.4, 0.03), dark); bezel.position.set(0, -0.001, -0.02); panel.add(bezel);
+    const hood = new THREE.Mesh(new THREE.BoxGeometry(1.02, 0.025, 0.2), dark); hood.position.set(0, eye[1] - 0.19, eye[2] - 0.68); c.add(hood);
+    const pedestal = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.45, 0.35), dark); pedestal.position.set(0, eye[1] - 0.8, eye[2] - 0.5); c.add(pedestal);
     for (const x of [-0.32, 0.32]) { const s = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.1, 0.5), seat); s.position.set(x, eye[1] - 0.85, eye[2] + 0.35); c.add(s); const b = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.7, 0.1), seat); b.position.set(x, eye[1] - 0.45, eye[2] + 0.62); c.add(b); }
     // drążek cykliczny
     this.stick = new THREE.Group(); this.stick.position.set(eye[0], eye[1] - 0.95, eye[2] - 0.05);
-    const st = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.02, 0.55, 8), dark); st.position.y = 0.27; this.stick.add(st);
-    const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.12, 8), seat); grip.position.y = 0.58; this.stick.add(grip);
+    const st = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.018, 0.55, 8), dark); st.position.y = 0.27; this.stick.add(st);
+    const grip = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.1, 8), seat); grip.position.y = 0.58; this.stick.add(grip);
     c.add(this.stick);
-    // ramy owiewki
+    // ramy owiewki (cienkie belki między punktami)
     const frameMat = std(this.mats.body.color.getHex(), 0.5, 0.2);
-    for (const x of [-0.55, 0.55]) { const f = new THREE.Mesh(new THREE.BoxGeometry(0.04, 1.0, 0.05), frameMat); f.position.set(x * scale, eye[1] - 0.05, eye[2] - 0.35); f.rotation.x = -0.5; f.rotation.z = x > 0 ? -0.3 : 0.3; c.add(f); }
-    const top = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, 1.2), frameMat); top.position.set(0, eye[1] + 0.35, eye[2] - 0.2); c.add(top);
+    const beam = (a, b, t) => { const A = new THREE.Vector3(...a), B = new THREE.Vector3(...b), L = A.distanceTo(B); const m = new THREE.Mesh(new THREE.BoxGeometry(t, L, t), frameMat); m.position.copy(A).add(B).multiplyScalar(0.5); m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), B.clone().sub(A).normalize()); c.add(m); };
+    const zf = eye[2] - 0.72, zt = eye[2] + 0.1, yb = eye[1] - 0.35, yt = eye[1] + 0.42;
+    for (const sx of [-1, 1]) { beam([sx * 0.74 * scale, yb - 0.15, zf + 0.35], [sx * 0.5 * scale, yt, zt], 0.028); }
+    beam([-0.42 * scale, yt, zt], [0.42 * scale, yt, zt], 0.035);
     c.visible = false;
     return c;
   }

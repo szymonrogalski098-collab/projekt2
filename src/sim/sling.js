@@ -33,7 +33,7 @@ export class Sling {
     this.nodeMass = 2.0; this.hookMass = 8;
     this.kSeg = 200000;   // N/m na odcinek (limit stabilności: 2*sqrt(k/m)*h < 2)
     this.cSeg = 260;
-    this.strap = 2.0; this.kStrap = 150000; this.cStrap = 700;
+    this.strap = 2.0; this.kStrap = 150000; this.cStrap = 2500; this.cRope = 1100;
     this.nodes = []; this.prev = [];
     this.load = null;
     this.force = [0, 0, 0];
@@ -86,6 +86,18 @@ export class Sling {
         acc[i + 1][0] -= F * ux / mb; acc[i + 1][1] -= F * uy / mb; acc[i + 1][2] -= F * uz / mb;
         if (i > 0) { acc[i][0] += F * ux / this.nodeMass; acc[i][1] += F * uy / this.nodeMass; acc[i][2] += F * uz / this.nodeMass; }
         else { f[0] += F * ux / SUB; f[1] += F * uy / SUB; f[2] += F * uz / SUB; if (F > tMax) tMax = F; }
+      }
+      // tłumik całej liny (histereza materiału): tłumi „odbijanie” ładunku na sprężystej linie
+      {
+        const a = N[0], b = N[n];
+        const dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], d = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1e-6;
+        if (d > this.length * 0.97) {
+          const ux = dx / d, uy = dy / d, uz = dz / d;
+          const rv = ((b[0] - P[n][0]) - (a[0] - P[0][0])) * ux + ((b[1] - P[n][1]) - (a[1] - P[0][1])) * uy + ((b[2] - P[n][2]) - (a[2] - P[0][2])) * uz;
+          const F = this.cRope * rv / h;
+          acc[n][0] -= F * ux / this.hookMass; acc[n][1] -= F * uy / this.hookMass; acc[n][2] -= F * uz / this.hookMass;
+          f[0] += F * ux / SUB; f[1] += F * uy / SUB; f[2] += F * uz / SUB;
+        }
       }
       // pas ładunku
       if (L) {

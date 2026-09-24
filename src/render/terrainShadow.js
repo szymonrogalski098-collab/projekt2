@@ -10,10 +10,11 @@ uniform vec3 sunDir;
 varying vec2 vUv;
 float hFetch( ivec2 c ) { c = clamp( c, ivec2( 0 ), ivec2( int( mapN ) - 1 ) ); return texelFetch( hMap, c, 0 ).r; }
 float H( vec2 w ) {
-  vec2 u = clamp( ( w + mapHalf ) / mapCell, vec2( 0.0 ), vec2( mapN - 1.001 ) );
+  float M = mapN - 1.001; vec2 u = ( w + mapHalf ) / mapCell;
+  u = mix( u, -u, step( u, vec2( 0.0 ) ) ); u = mix( u, 2.0 * M - u, step( vec2( M ), u ) ); u = clamp( u, vec2( 0.0 ), vec2( M ) );
   ivec2 i = ivec2( floor( u ) ); vec2 f = u - vec2( i );
   return mix( mix( hFetch( i ), hFetch( i + ivec2( 1, 0 ) ), f.x ), mix( hFetch( i + ivec2( 0, 1 ) ), hFetch( i + ivec2( 1, 1 ) ), f.x ), f.y )
-    + length( max( abs( w ) - mapHalf, 0.0 ) ) * 0.45;
+    + length( max( abs( w ) - mapHalf, 0.0 ) ) * 0.12;
 }
 void main() {
   vec2 w = ( vUv - 0.5 ) * mapHalf * 2.0;

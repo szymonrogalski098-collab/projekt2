@@ -129,7 +129,7 @@ export class Graphics {
     this.scene.add(this.sky);
     this.sky.material.uniforms.showSunDisc.value = 1;
     this.scene.environment = this.envRT.texture;
-    this.scene.environmentIntensity = 1.0;
+    this.scene.environmentIntensity = 0.75;
     // cień terenu
     this.tShadow.update(sd);
     this.env = env;
@@ -214,7 +214,7 @@ export class Graphics {
         col2.position.y = (m.agl[0] + m.agl[1]) / 2; g.add(col2);
         for (const hh of m.agl) { const rr = new THREE.Mesh(new THREE.TorusGeometry(m.r, 0.035, 5, 64), glow(0xffe060, 0.35)); rr.rotation.x = Math.PI / 2; rr.position.y = hh; g.add(rr); }
       }
-      const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 60, 6, 1, true), glow(col, 0.18)); beacon.position.y = 30; g.add(beacon);
+      const beacon = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.6, 300, 6, 1, true), glow(col, 0.1)); beacon.position.y = 150; beacon.userData.farOnly = true; g.add(beacon);
     } else if (m.kind === 'waypoint') {
       const beacon = new THREE.Mesh(new THREE.CylinderGeometry(2, 2, 400, 8, 1, true), glow(0x60d0ff, 0.08)); beacon.position.y = 200; g.add(beacon);
     } else if (m.kind === 'flag') {
@@ -267,6 +267,7 @@ export class Graphics {
       w.sock.rotation.y = Math.atan2(-wv[2], wv[0]);
       w.sock.rotation.z = -Math.PI / 2 * (1 - Math.min(1, sp / 8)) * 0.85 + Math.sin(performance.now() / 300) * 0.03 * sp / 8;
     }
+    for (const mk of this.markers.children) for (const c of mk.children) if (c.userData.farOnly) c.visible = cam.position.distanceTo(mk.position) > 250;
     if (v.dust) this.updateDust(dt, v.heli, v.dust.groundY, v.dust.water, v.dust.strength);
     else this.updateDust(dt, v.heli, 0, false, 0);
     this.composer.render(dt);
