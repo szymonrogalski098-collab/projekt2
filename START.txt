@@ -1,0 +1,3 @@
+Wklej do Claude Code (otwartego w TYM folderze) dokładnie to:
+
+Przeczytaj CLAUDE.md i wykonaj go w całości, autonomicznie, wszystkie 3 etapy. Przestrzegaj zasad tajemnicy.
