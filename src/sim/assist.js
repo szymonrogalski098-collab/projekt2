@@ -37,7 +37,12 @@ export class Assist {
     const a = heli.attitude(this._att);
     if (level === 'partial') {
       this.attitudeHold(heli, dt, -raw.cy * ATT_MAX.pitch, raw.cx * ATT_MAX.roll, out);
-      out.pedal = clamp(raw.pedal + heli.omega.y * 0.9, -1, 1); // tłumik odchylania
+      // tłumik odchylania + utrzymanie kursu, gdy pedały puszczone
+      if (Math.abs(raw.pedal) > 0.05 || heli.onGround || this.holdHdg === null) this.holdHdg = a.heading;
+      const hErr = wrapPi(this.holdHdg - a.heading);
+      out.pedal = clamp(raw.pedal + heli.omega.y * 0.9 + (Math.abs(raw.pedal) > 0.05 ? 0 : clamp(hErr * 1.2, -0.4, 0.4)), -1, 1);
+      // lot szkolny: pomoc w utrzymaniu wysokości (tylko misja wprowadzająca)
+      if (this.tutorial) return this.collectiveHold(heli, raw, dt, out);
       return out;
     }
     // --- pełna ---
@@ -63,20 +68,34 @@ export class Assist {
     if (Math.abs(raw.pedal) > 0.05 || this.holdHdg === null || heli.onGround) this.holdHdg = a.heading;
     const rateCmd = -raw.pedal * 0.6 + (Math.abs(raw.pedal) > 0.05 ? 0 : wrapPi(a.heading - this.holdHdg) * 1.2);
     out.pedal = clamp((heli.omega.y - rateCmd) * 1.4 + this.pedTrim(heli), -1, 1);
-    // skok: oś (W/S) = zadana prędkość pionowa, puszczona = utrzymanie wysokości
+    return this.collectiveHold(heli, raw, dt, out);
+  }
+
+  // skok: oś (W/S) = zadana prędkość pionowa, puszczona = utrzymanie wysokości
+  collectiveHold(heli, raw, dt, out) {
     const axis = raw.collectiveAxis || 0;
-    if (heli.onGround && axis <= 0) { out.collective = raw.collective; this.holdAlt = null; this.colHover = Math.max(this.colHover, 0.3); return out; }
+    if (heli.onGround && axis <= 0) {
+      // na ziemi: dźwignia nie może wyrwać maszyny w górę po przyziemieniu
+      // po przyziemieniu skok schodzi płynnie (nagłe zrzucenie odbija maszynę od ziemi)
+      const g0 = this.gCol ?? raw.collective;
+      this.gCol = Math.min(g0, Math.max(raw.collective, g0 - 0.35 * dt));
+      out.collective = this.gCol; this.holdAlt = null; this.colHover = Math.max(this.colHover, 0.3); return out;
+    }
+    this.gCol = Math.min(0.5, this.colHover);
     let vsCmd;
     if (Math.abs(axis) > 0.05 || this.holdAlt === null) { vsCmd = axis * 4; this.holdAlt = heli.pos.y; }
     else vsCmd = clamp((this.holdAlt - heli.pos.y) * 0.6, -2, 2);
+    // przy ziemi łagodne opadanie (asysta pełna chroni przed twardym przyziemieniem)
+    const aglA = Math.max(0, heli.tel.agl || 0);
+    vsCmd = Math.max(vsCmd, -Math.max(0.35, Math.min(4, aglA * 0.35)));
     this.colHover = clamp(this.colHover + (vsCmd - heli.vel.y) * dt * 0.04, 0.1, 0.95);
     out.collective = clamp(this.colHover + (vsCmd - heli.vel.y) * 0.06, 0, 1);
     return out;
   }
   pedTrim(heli) { // przybliżony trym pedałów z momentu obrotowego
     const tl = heli.spec.tail, S = heli.spec;
-    const Q = heli.tel.Peng / (S.rotor.omega * Math.max(0.3, heli.rpm));
-    const need = Q / tl.arm / (tl.kT * (heli.tel.rho / 1.225) * Math.max(0.3, heli.rpm * heli.rpm));
+    const Q = (heli.tel.Peng || 0) / (S.rotor.omega * Math.max(0.3, heli.rpm));
+    const need = Q / tl.arm / (tl.kT * ((heli.tel.rho || 1.1) / 1.225) * Math.max(0.3, heli.rpm * heli.rpm));
     return clamp((tl.bias - need) / tl.range, -1, 1);
   }
 }

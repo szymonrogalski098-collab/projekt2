@@ -53,9 +53,18 @@ export class App {
     const ext = gl.getExtension('WEBGL_debug_renderer_info');
     const r = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : '';
     if (/SwiftShader|llvmpipe|Software/i.test(r)) return 'low';
-    if (/RTX|RX 6[7-9]|RX 7|Radeon Pro|GTX 1080|GTX 1070|Arc A7/i.test(r)) return 'high';
-    if (/Intel|Iris|UHD|Apple M1/i.test(r)) return 'medium';
-    return 'high';
+    if (/Intel|Iris|UHD|Vega|Radeon\(TM\) Graphics|Mali|Adreno/i.test(r)) return 'low';
+    if (/RTX [2-5]0[6-9]0|RX [67][7-9]00|RX 9/i.test(r)) return 'high';
+    return 'medium';
+  }
+  // tryb „auto”: gdy przez kilka sekund lotu jest za mało klatek, obniż jakość o stopień
+  adaptQuality() {
+    if (this.settings.quality !== 'auto' || this.state !== 'flight' || document.hidden) { this._slow = 0; return; }
+    this._slow = this.fps < 42 ? (this._slow || 0) + 1 : 0;
+    if (this._slow < 8) return;
+    this._slow = 0;
+    const order = ['low', 'medium', 'high', 'ultra'], i = order.indexOf(this.gfx.quality);
+    if (i > 0) { this.gfx.setQuality(order[i - 1]); this.resize(); }
   }
   setSave(s) { this.save = s; storeSave(s); }
   resetSave() { this.save = newSave(); storeSave(this.save); }
@@ -79,7 +88,7 @@ export class App {
     const def = missionById(id);
     this.audio.init();
     const t0 = performance.now();
-    this.session = new Session(this.ctx, def, { assist: this.settings.assist, seed: (Date.now() & 0xffff) + 1 });
+    this.session = new Session(this.ctx, def, { assist: this.settings.assist, seed: (Date.now() & 0xffff) + 1, tutorialAid: true });
     const envKey = JSON.stringify([def.time, def.weather]);
     if (this._envKey !== envKey) { this.gfx.setEnvironment({ hour: def.time, clouds: def.weather?.clouds, fog: def.weather?.fog }); this._envKey = envKey; }
     if (!this.gfx.heli || this.gfx.heli.spec.id !== this.session.heli.spec.id) this.gfx.setHeli(this.session.heli.spec);
@@ -122,7 +131,7 @@ export class App {
     requestAnimationFrame(t => this.loop(t));
     if (this.loopStopped) { this.last = now; return; }
     let dt = Math.min(0.1, (now - this.last) / 1000); this.last = now;
-    this._fa += dt; this._fn++; if (this._fa > 0.5) { this.fps = this._fn / this._fa; this._fa = 0; this._fn = 0; }
+    this._fa += dt; this._fn++; if (this._fa > 0.5) { this.fps = this._fn / this._fa; this._fa = 0; this._fn = 0; this.adaptQuality(); }
     if (!this.session) { this.renderIdle(dt); return; }
     const s = this.session, h = s.heli;
     if (this.state === 'flight' && !this.debugHold) {

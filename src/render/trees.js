@@ -105,6 +105,7 @@ export class Forest {
     this.far = this.makeFar();
     this.group.add(this.far);
     this._lastNear = new THREE.Vector3(1e9, 0, 0); this._lastFar = new THREE.Vector3(1e9, 0, 0);
+    this.density = 1;
     this._m = new THREE.Matrix4(); this._q = new THREE.Quaternion(); this._s = new THREE.Vector3(); this._p = new THREE.Vector3();
   }
 
@@ -164,6 +165,8 @@ export class Forest {
     return mesh;
   }
 
+  setDensity(d) { this.density = d; this._lastNear.set(1e9, 0, 0); this._lastFar.set(1e9, 0, 0); }
+
   update(camPos, dt, wind, heli) {
     this.u.uTime.value += dt;
     if (wind) this.u.uWind.value.set(wind[0], wind[1], wind[2]);
@@ -181,7 +184,8 @@ export class Forest {
           const k = g.idx[q];
           const dx = T.x[k] - camPos.x, dz = T.z[k] - camPos.z;
           if (dx * dx + dz * dz > r * r) continue;
-          const kind = T.kind[k] + (dx * dx + dz * dz > SHADOW_R * SHADOW_R ? 2 : 0), im = this.near[kind];
+          const sr = SHADOW_R * (0.5 + 0.5 * this.density);
+          const kind = T.kind[k] + (dx * dx + dz * dz > sr * sr ? 2 : 0), im = this.near[kind];
           if (cnt[kind] >= NEAR_MAX) continue;
           const h = T.h[k];
           this._q.setFromAxisAngle(this._p.set(0, 1, 0), (k * 2.399) % 6.283);
@@ -200,6 +204,7 @@ export class Forest {
         const dx = T.x[k] - camPos.x, dz = T.z[k] - camPos.z, d2 = dx * dx + dz * dz;
         if (d2 > r2 || d2 < rn) continue;
         if (d2 > 2500 * 2500 && (k & 1)) continue; // przerzedzenie daleko
+        if (this.density < 1 && ((k * 2654435761) >>> 24) > this.density * 256) continue; // jakość
         const h = T.h[k] * (d2 > 2500 * 2500 ? 1.15 : 1);
         a[n * 4] = T.x[k]; a[n * 4 + 1] = T.y[k] - 0.3; a[n * 4 + 2] = T.z[k]; a[n * 4 + 3] = T.kind[k] ? -h * 1.1 : h; n++;
       }

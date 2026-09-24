@@ -5,6 +5,18 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { GTAOPass } from 'three/examples/jsm/postprocessing/GTAOPass.js';
+import { ShaderPass } from 'three/examples/jsm/postprocessing/ShaderPass.js';
+
+const SANITIZE = {
+  uniforms: { tDiffuse: { value: null } },
+  vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 ); }',
+  fragmentShader: `uniform sampler2D tDiffuse; varying vec2 vUv;
+    void main() {
+      vec4 c = texture2D( tDiffuse, vUv );
+      bool bad = any( isnan( c ) ) || any( isinf( c ) ) || !( c.r + c.g + c.b < 1e5 );
+      gl_FragColor = bad ? vec4( 0.0, 0.0, 0.0, 1.0 ) : vec4( clamp( c.rgb, 0.0, 2000.0 ), 1.0 );
+    }`,
+};
 import { ATMO, enhance } from './atmo.js';
 import { makeSky, skyRadiance, sunTransmittance } from './sky.js';
 import { generateLayerTextures } from './texgen.js';
@@ -17,10 +29,10 @@ import { HeliModel } from './heliModel.js';
 import { AIRCRAFT } from '../sim/aircraft.js';
 
 export const QUALITY = {
-  low: { shadow: 1024, pr: 0.75, bloom: false, msaa: 0, ao: false, trees: 0.6 },
-  medium: { shadow: 2048, pr: 1, bloom: true, msaa: 0, ao: false, trees: 0.8 },
-  high: { shadow: 4096, pr: 1, bloom: true, msaa: 4, ao: false, trees: 1 },
-  ultra: { shadow: 4096, pr: 1, bloom: true, msaa: 4, ao: true, trees: 1 },
+  low: { shadow: 1024, pr: 0.7, bloom: false, msaa: 0, ao: false, trees: 0.5 },
+  medium: { shadow: 2048, pr: 0.85, bloom: true, msaa: 0, ao: false, trees: 0.75 },
+  high: { shadow: 2048, pr: 1, bloom: true, msaa: 2, ao: false, trees: 1 },
+  ultra: { shadow: 4096, pr: 1.25, bloom: true, msaa: 4, ao: true, trees: 1 },
 };
 
 export function sunDirection(hour, lat = 49.3, decl = 14) {
@@ -75,16 +87,22 @@ export class Graphics {
 
   setQuality(q) {
     this.quality = q; const Q = QUALITY[q] || QUALITY.high;
-    this.renderer.setPixelRatio(Math.min(2, (window.devicePixelRatio || 1) * Q.pr));
+    // rozdzielczość renderu niezależna od skalowania ekranu (DPI) – stały koszt na piksel
+    this.renderer.setPixelRatio(Q.pr);
     this.sun.shadow.mapSize.set(Q.shadow, Q.shadow);
     if (this.sun.shadow.map) { this.sun.shadow.map.dispose(); this.sun.shadow.map = null; }
     const size = this.renderer.getSize(new THREE.Vector2());
     const rt = new THREE.WebGLRenderTarget(Math.max(1, size.x), Math.max(1, size.y), { type: THREE.HalfFloatType, samples: Q.msaa });
+    if (this.composer) { for (const p of this.composer.passes) p.dispose?.(); this.composer.dispose(); }
+    this.bloom = null;
     this.composer = new EffectComposer(this.renderer, rt);
     this.composer.addPass(new RenderPass(this.scene, this.camera));
+    // usuwa NaN/Inf z bufora HDR (inaczej bloom rozlewa je na cały ekran -> czarny obraz)
+    this.composer.addPass(new ShaderPass(SANITIZE));
     if (Q.ao) { try { const ao = new GTAOPass(this.scene, this.camera, size.x, size.y); ao.blendIntensity = 0.7; this.composer.addPass(ao); } catch (e) { /* brak AO */ } }
     if (Q.bloom) { this.bloom = new UnrealBloomPass(new THREE.Vector2(size.x / 2, size.y / 2), 0.18, 0.5, 0.92); this.composer.addPass(this.bloom); }
     this.composer.addPass(new OutputPass());
+    this.forest.setDensity(Q.trees);
     this.resize(size.x, size.y);
   }
 

@@ -16,7 +16,7 @@ export class HeliModel {
     const g = this.group = new THREE.Group();
     const S = spec, sk = S.skids, R = S.rotor;
     const body = std(L.body, 0.35, 0.2), white = std(L.stripe, 0.4, 0.1), dark = std(L.dark, 0.6, 0.3), metal = std(0x9aa0a6, 0.35, 0.8);
-    const glass = new THREE.MeshPhysicalMaterial({ color: 0x9fb4c4, roughness: 0.03, metalness: 0, transparent: true, opacity: 0.22, envMapIntensity: 1.6, side: THREE.DoubleSide, depthWrite: false });
+    const glass = new THREE.MeshPhysicalMaterial({ color: 0x9fb4c4, roughness: 0.1, metalness: 0, transparent: true, opacity: 0.22, envMapIntensity: 1.6, side: THREE.DoubleSide, depthWrite: false });
     enhance(glass);
     this.mats = { body, white, dark, metal, glass };
     const scale = S.rotor.R / 3.9;

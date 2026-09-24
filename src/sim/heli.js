@@ -56,7 +56,7 @@ export class Heli {
     this.stats = { maxImpact: 0, lastImpact: 0, hardLandings: 0, touchdowns: 0, maxG: 1, vrsTime: 0, lowRpmTime: 0, overspeed: 0, maxVs: 0 };
     this.onGround = onGround; this.groundContacts = 0; this._impactNow = 0; this._wasContact = false;
     for (const p of this.skidPts) { p.anchor = null; p.contact = false; }
-    this.tel = { T: 0, Preq: 0, Pav: 1, Q: 0, ias: 0, gs: 0, vs: 0, agl: 0, rho: 1.2, vh: 7, ge: 1, etl: 0, lee: 0, wind: [0, 0, 0], torque: 0, trMargin: 1, g: 1 };
+    this.tel = { T: 0, Preq: 0, Pav: 1, Peng: 0, Q: 0, ias: 0, gs: 0, vs: 0, agl: 0, rho: 1.2, vh: 7, ge: 1, etl: 0, lee: 0, wind: [0, 0, 0], torque: 0, trMargin: 1, g: 1 };
     this.external.set(0, 0, 0);
     if (onGround) this.vi = 0;
   }
@@ -86,6 +86,7 @@ export class Heli {
   // c: {collective 0..1, cx -1..1 (w prawo), cy -1..1 (do przodu), pedal -1..1 (w prawo)}
   step(dt, c, env) {
     const S = this.spec, D = this.d, R = S.rotor;
+    for (const k of ['collective', 'cx', 'cy', 'pedal']) if (!Number.isFinite(c[k])) c[k] = k === 'collective' ? 0.3 : 0;
     this.t += dt;
     if (this.crashed) { this.vel.multiplyScalar(0.9); this.omega.multiplyScalar(0.9); this.rpm = Math.max(0, this.rpm - dt * 0.5); return; }
     const m = this.mass;

@@ -20,6 +20,13 @@ async function boot() {
     const ctx = buildContext(terrain);
     const gfx = new Graphics(canvas, ctx, 'high');
     const app = new App(ctx, gfx, canvas);
+    canvas.addEventListener('webglcontextlost', e => {
+      e.preventDefault(); app.loopStopped = true;
+      const d = document.createElement('div'); d.className = 'screen on'; d.style.zIndex = 50;
+      d.innerHTML = '<div class="center" style="text-align:center"><h2>Karta graficzna zresetowała obraz</h2><p class="subtitle">Zwykle to brak pamięci karty. Ustawienia → Jakość: niższa pomoże.<br>Postęp kampanii jest zapisany.</p><button class="btn primary" id="ctxreload">Uruchom ponownie</button></div>';
+      document.body.appendChild(d);
+      d.querySelector('#ctxreload').onclick = () => location.reload();
+    });
     tmp.remove();
     const params = new URLSearchParams(location.search);
     if (params.has('debug')) { const { installDebug } = await import('./debug/debug.js'); installDebug(app); }

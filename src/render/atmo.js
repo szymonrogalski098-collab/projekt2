@@ -71,7 +71,7 @@ export function enhance(mat, opts = {}) {
     sh.fragmentShader = sh.fragmentShader.replace('#include <common>', '#include <common>\n' + FRAG_PARS)
       .replace('getDirectionalLightInfo( directionalLight, directLight );', 'getDirectionalLightInfo( directionalLight, directLight );\n\t\tdirectLight.color *= _tsVis;')
       .replace('#include <lights_fragment_begin>', 'float _tsVis = terrainSunVis( vWPos );\n#include <lights_fragment_begin>')
-      .replace('#include <fog_fragment>', opts.noFog ? '' : 'gl_FragColor.rgb = applyAerial( gl_FragColor.rgb, vWPos );');
+      .replace('#include <fog_fragment>', (opts.noFog ? '' : 'gl_FragColor.rgb = applyAerial( gl_FragColor.rgb, vWPos );') + '\n\tgl_FragColor.rgb = min( max( gl_FragColor.rgb, vec3( 0.0 ) ), vec3( 3000.0 ) );');
     if (opts.matte) sh.fragmentShader = sh.fragmentShader.replace('#include <lights_physical_fragment>', '#include <lights_physical_fragment>\nmaterial.specularColor = vec3( 0.012 ); material.specularF90 = 0.25;');
     if (prev) prev(sh, r);
     if (opts.onShader) opts.onShader(sh);

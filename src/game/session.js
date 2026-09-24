@@ -21,6 +21,7 @@ export class Session {
     this.wind = new Wind({ ...w, seed: (w.seed ?? 3) + this.seed * 7919 }, ctx.terrain);
     this.env = { wind: this.wind, world: ctx.world, dT: def.weather?.dT || 0 };
     this.assist = new Assist();
+    this.assist.tutorial = !!(def.tutorial && opts.tutorialAid);
     this.tick = 0; this.t = 0;
     this.loads = (def.loads || []).map(o => {
       const p = resolvePoint({ ctx, session: this }, o.at);
