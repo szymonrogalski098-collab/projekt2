@@ -40,6 +40,14 @@ export class Heli {
     this.reset(new Vector3(0, 1000, 0), 0, false);
   }
 
+  // szacowany skok do zawisu poza wpływem ziemi (znacznik na wskaźniku skoku)
+  hoverCollective(extra = 0) {
+    const R = this.spec.rotor, D = this.d, rho = this.tel.rho || 1.1;
+    const T = (this.mass + extra) * 9.81 * 1.03, tip = R.omega * R.R;
+    const CT = T / (rho * D.A * tip * tip), lam = Math.sqrt(CT / 2);
+    const theta = 3 * (2 * CT / (D.sigma * R.a) + lam / 2);
+    return (theta - R.thMin) / (R.thMax - R.thMin);
+  }
   get mass() { return this.spec.mass.empty + this.spec.mass.pilot + this.fuel + this.cargo; }
 
   reset(pos, heading = 0, onGround = true, opts = {}) {
@@ -142,7 +150,8 @@ export class Heli {
     const vh = Math.sqrt(Math.max(50, Math.abs(T)) / (2 * rho * D.A));
     const xN = Vc / vh, yN = uIp / vh;
     const bell = clamp(1 - Math.pow((xN + 1.0) / 0.62, 2), 0, 1);
-    const vrsT = bell * (1 - smoothstep(0.35, 0.95, yN)) * (T > 0 ? 1 : 0);
+    // blisko ziemi ślad wirnika nie może recyrkulować – pierścień się nie tworzy
+    const vrsT = bell * (1 - smoothstep(0.35, 0.95, yN)) * (T > 0 ? 1 : 0) * smoothstep(1.0, 2.5, aglHub / R.R);
     this.vrs += (vrsT - this.vrs) * Math.min(1, dt / (vrsT > this.vrs ? 0.9 : 0.6));
     if (this.vrs > 0.02) {
       const fl = vnoise3(this.t * 2.3, 1.7, 0, 77);
@@ -325,6 +334,7 @@ export class Heli {
     tel.T = T; tel.Preq = Preq; tel.Pav = Pav; tel.Peng = this.Peng; tel.torque = this.Peng / Math.max(1, E.type === 'piston' ? E.P : E.flat);
     tel.ias = ias; tel.gs = Math.hypot(this.vel.x, this.vel.z); tel.vs = this.vel.y;
     tel.rho = rho; tel.vh = vh; tel.ge = ge; tel.etl = etl; tel.lee = env.wind.lastLee || 0; tel.wind = [_wind[0], _wind[1], _wind[2]];
+    tel.Ttr = Ttr;
     tel.trMargin = 1 - clamp((trPitch + 0.3) / 1.3, 0, 1); tel.g = gl; tel.mu = mu; tel.Vc = Vc; tel.vi = this.vi;
     tel.aglHub = aglHub; tel.vrs = this.vrs; tel.stall = stall; tel.ctRatio = CT / CTmax;
     const gp = env.world.ground(this.pos.x, this.pos.z, this.pos.y);

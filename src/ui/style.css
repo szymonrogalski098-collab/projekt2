@@ -48,6 +48,7 @@ button { font: inherit; color: inherit; }
 #stickbox .pad i { position: absolute; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 50%; background: var(--green); left: 50%; top: 50%; }
 #stickbox .col { width: 12px; height: 74px; border: 1px solid var(--hud-dim); border-radius: 3px; position: relative; }
 #stickbox .col i { position: absolute; left: 0; right: 0; bottom: 0; background: var(--green); }
+#stickbox .col b { position: absolute; left: -5px; right: -5px; height: 2px; margin-bottom: -1px; background: #ffcf4a; box-shadow: 0 0 3px rgba(0,0,0,.8); }
 #stickbox .ped { width: 74px; height: 10px; border: 1px solid var(--hud-dim); border-radius: 3px; position: relative; margin-top: 6px; }
 #stickbox .ped i { position: absolute; top: 0; bottom: 0; width: 3px; left: 50%; background: var(--green); }
 #stickbox .lbl { font-size: 10px; color: var(--hud-dim); text-align: center; margin-top: 3px; letter-spacing: 0.05em; }

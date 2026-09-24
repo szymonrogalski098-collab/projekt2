@@ -266,7 +266,7 @@ export class App {
       if (sl.load) loadAgl = sl.load.pos[1] - sl.load.half - this.ctx.world.ground(sl.load.pos[0], sl.load.pos[2], sl.load.pos[1]).h;
     }
     this.hud.root.classList.toggle('cockpit', this.camMode === 'cockpit');
-    this.hud.update(dt, { heli: h, att, raw: this.lastRaw || { cx: 0, cy: 0, collective: 0, pedal: 0 }, objective: o, flash: s.mission.flash, time: s.mission.time, limit: s.def.limits?.time, targetScreen, sling: sl, hookDist, hookAgl, loadAgl, camLabel: CAM_LABEL[this.camMode] });
+    this.hud.update(dt, { heli: h, att, raw: this.lastRaw || { cx: 0, cy: 0, collective: 0, pedal: 0 }, objective: o, flash: s.mission.flash, time: s.mission.time, limit: s.def.limits?.time, targetScreen, col: s.controls.collective, hoverCol: s.assistLevel === 'full' || s.assist.tutorial ? null : h.hoverCollective(sl?.load?.mass || 0) - 0.01, sling: sl, hookDist, hookAgl, loadAgl, camLabel: CAM_LABEL[this.camMode] });
     // --- dźwięk ---
     const E = h.spec.engine;
     this.audio.update({ rpm: h.rpm, blades: h.spec.rotor.blades, omega: h.spec.rotor.omega, load: Math.max(0, h.tel.T / (h.mass * 9.81) - 0.3), vrs: h.vrs, etl: h.tel.etl, ias: h.tel.ias,

@@ -56,7 +56,7 @@ export class Input {
     let axis = 0;
     if (this.isDown('collUp')) axis += 1;
     if (this.isDown('collDown')) axis -= 1;
-    const rate = prec ? 0.12 : 0.42;
+    const rate = prec ? 0.1 : 0.3;
     // pad
     let padC = null;
     const pads = navigator.getGamepads ? navigator.getGamepads() : [];

@@ -239,7 +239,7 @@ export class Autopilot {
     desPitch = clamp(desPitch, -tiltMax, tiltMax); desRoll = clamp(desRoll, -tiltMax, tiltMax);
     if (h.onGround) { desPitch = 0; desRoll = 0; }
     raw.cy = clamp(-desPitch / ATT_MAX.pitch, -1, 1);
-    raw.cx = clamp(desRoll / ATT_MAX.roll, -1, 1);
+    raw.cx = clamp((desRoll - s.assist.rollTrim(h)) / ATT_MAX.roll, -1, 1); // trym asysty już jest w postawie
     // pedały
     const he = wrapPi(hd - a.heading);
     const rateCmd = aglNow < 2.5 ? 0 : clamp(he * 1.3, -0.45, 0.45);   // kurs rośnie w prawo, omega.y = -tempo zmiany kursu

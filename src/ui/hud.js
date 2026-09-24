@@ -14,7 +14,7 @@ export class Hud {
       <div id="vsbar"><div class="z"></div><i></i><b></b><div class="lbl">PIONOWA</div></div><div id="flash"></div>
       <div id="tgt"><div class="d"></div><div class="l num"></div></div>
       <div id="hookinfo"></div>
-      <div id="stickbox"><div><div class="pad"><i></i></div><div class="ped"><i></i></div><div class="lbl">DRĄŻEK · PEDAŁY</div></div><div><div class="col"><i></i></div><div class="lbl">SKOK</div></div></div>
+      <div id="stickbox"><div><div class="pad"><i></i></div><div class="ped"><i></i></div><div class="lbl">DRĄŻEK · PEDAŁY</div></div><div><div class="col"><i></i><b title="zawis"></b></div><div class="lbl">SKOK</div></div></div>
       <div id="radio"></div>`;
     this.root = root;
     const q = s => root.querySelector(s);
@@ -50,7 +50,9 @@ export class Hud {
     // drążek (co klatkę)
     if (S.hudStick) {
       this.el.stick.style.left = (50 + v.raw.cx * 46) + '%'; this.el.stick.style.top = (50 - v.raw.cy * 46) + '%';
-      this.el.col.style.height = (v.raw.collective * 100) + '%';
+      this.el.col.style.height = ((v.col ?? v.raw.collective) * 100) + '%';
+      const hm = this.el.col.parentElement.querySelector('b');
+      if (v.hoverCol == null) hm.style.display = 'none'; else { hm.style.display = ''; hm.style.bottom = (Math.max(0, Math.min(1, v.hoverCol)) * 100) + '%'; }
       this.el.ped.style.left = (50 + v.raw.pedal * 48) + '%';
     }
     this.el.stick.parentElement.parentElement.parentElement.style.display = S.hudStick ? '' : 'none';
