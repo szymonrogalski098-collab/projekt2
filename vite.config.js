@@ -11,5 +11,5 @@ export default defineConfig({
   plugins: [viteSingleFile()],
   define: { __TERRAIN_VER__: JSON.stringify(h.digest('hex').slice(0, 10)) },
   build: { outDir: 'dist', assetsInlineLimit: 1e9, chunkSizeWarningLimit: 5000 },
-  worker: { format: 'es' },
+  worker: { format: 'iife' },
 });

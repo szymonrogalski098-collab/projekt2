@@ -34,7 +34,21 @@ export async function loadTerrain(onStatus = () => {}) {
   let d = await cacheGet();
   if (!d) {
     onStatus('gen');
-    d = await new Promise((res, rej) => { const w = new TerrainWorker(); w.onmessage = e => { res(e.data); w.terminate(); }; w.onerror = rej; w.postMessage(1); });
+    try {
+      d = await new Promise((res, rej) => {
+        let w;
+        try { w = new TerrainWorker(); } catch (e) { rej(e); return; }
+        w.onmessage = e => { res(e.data); w.terminate(); };
+        w.onerror = e => { try { w.terminate(); } catch { /* */ } rej(e); };
+        w.postMessage(1);
+      });
+    } catch (e) {
+      // np. plik otwarty z dysku (file://), gdzie przeglądarka blokuje wątek roboczy – liczymy w wątku głównym
+      onStatus('gen-main');
+      await new Promise(r => setTimeout(r, 50));
+      const { buildPayload } = await import('./terrainWorker.js');
+      d = buildPayload();
+    }
     cachePut(d);
   }
   applyLayoutY(d.layoutY);

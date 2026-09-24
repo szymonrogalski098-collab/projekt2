@@ -14,7 +14,7 @@ async function boot() {
   document.body.appendChild(tmp);
   const msg = t => { const m = document.getElementById('bootmsg'); if (m) m.textContent = t; };
   try {
-    const terrain = await loadTerrain(st => st === 'gen' && msg('Pierwsze uruchomienie: generowanie gór i erozja (kilka sekund)…'));
+    const terrain = await loadTerrain(st => { if (st === 'gen') msg('Pierwsze uruchomienie: generowanie gór i erozja (kilka sekund)…'); if (st === 'gen-main') msg('Generowanie gór i erozja (ok. 10–20 s, strona może chwilę nie reagować)…'); });
     msg('Budowanie świata…');
     await new Promise(r => setTimeout(r, 30));
     const ctx = buildContext(terrain);
